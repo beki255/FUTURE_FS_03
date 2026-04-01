@@ -1,13 +1,70 @@
-let cart = [];
+let cart = JSON.parse(localStorage.getItem('cart')) || [];
 let isLoggedIn = false;
 let currentUser = null;
 let selectedPayment = null;
+let wishlist = JSON.parse(localStorage.getItem('wishlist')) || [];
+let recentlyViewed = JSON.parse(localStorage.getItem('recentlyViewed')) || [];
+let compareList = JSON.parse(localStorage.getItem('compareList')) || [];
+let productReviews = JSON.parse(localStorage.getItem('productReviews')) || {};
 
 function initTheme() {
     const savedTheme = localStorage.getItem('theme') || 'light';
     document.documentElement.setAttribute('data-theme', savedTheme);
     checkLoginStatus();
-    checkAccess();
+    updateCartUI();
+    updateHeaderCartCount();
+    updateWishlistUI();
+    updateProductWishlistButtons();
+    renderRecentlyViewed();
+    checkUrlCategory();
+}
+
+function goToCategory() {
+    const select = document.getElementById('categorySelect');
+    const category = select.value;
+    if (category) {
+        window.location.href = 'shop.html?category=' + category;
+    } else {
+        window.location.href = 'shop.html';
+    }
+}
+
+function handleSearch(event) {
+    event.preventDefault();
+    const searchInput = document.getElementById('searchInput');
+    const category = document.getElementById('categorySelect').value;
+    let url = 'shop.html?';
+    const params = [];
+    if (category) params.push('category=' + category);
+    if (searchInput.value) params.push('search=' + encodeURIComponent(searchInput.value));
+    url += params.join('&');
+    window.location.href = url;
+}
+
+function checkUrlCategory() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const category = urlParams.get('category');
+    const search = urlParams.get('search');
+    
+    if (document.getElementById('categorySelect')) {
+        document.getElementById('categorySelect').value = category || '';
+    }
+    if (document.getElementById('searchInput')) {
+        document.getElementById('searchInput').value = search || '';
+    }
+    
+    if (category) {
+        const radios = document.querySelectorAll('.filter-list input[type="radio"]');
+        radios.forEach(radio => {
+            if (radio.value === category) {
+                radio.checked = true;
+            } else {
+                radio.checked = false;
+            }
+        });
+    }
+    
+    filterProducts();
 }
 
 function toggleTheme() {
@@ -15,12 +72,99 @@ function toggleTheme() {
     const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
     document.documentElement.setAttribute('data-theme', newTheme);
     localStorage.setItem('theme', newTheme);
+    
+    const themeIcon = document.querySelector('.theme-btn');
+    if (themeIcon) {
+        themeIcon.textContent = newTheme === 'dark' ? '☀️' : '🌙';
+    }
 }
 
 initTheme();
 
-function toggleMenu() {
-    document.querySelector('.nav-links').classList.toggle('active');
+function toggleWishlist(productId) {
+    const existingIndex = wishlist.indexOf(productId);
+    if (existingIndex > -1) {
+        wishlist.splice(existingIndex, 1);
+        showNotification('Removed from wishlist');
+    } else {
+        wishlist.push(productId);
+        showNotification('Added to wishlist');
+    }
+    localStorage.setItem('wishlist', JSON.stringify(wishlist));
+    updateWishlistUI();
+    updateProductWishlistButtons();
+}
+
+function isInWishlist(productId) {
+    return wishlist.includes(productId);
+}
+
+function updateWishlistUI() {
+    const wishlistCount = document.getElementById('wishlistCount');
+    if (wishlistCount) {
+        wishlistCount.textContent = wishlist.length;
+    }
+    updateWishlistMenuLink();
+}
+
+function updateWishlistMenuLink() {
+    const wishlistLink = document.querySelector('.wishlist-link');
+    if (wishlistLink) {
+        wishlistLink.innerHTML = `<span>♡</span> Wishlist (${wishlist.length})`;
+    }
+}
+
+function updateProductWishlistButtons() {
+    document.querySelectorAll('.wishlist-btn').forEach(btn => {
+        const productId = btn.getAttribute('data-id');
+        if (isInWishlist(parseInt(productId))) {
+            btn.classList.add('active');
+            btn.innerHTML = '♥';
+        } else {
+            btn.classList.remove('active');
+            btn.innerHTML = '♡';
+        }
+    });
+}
+
+function openWishlistModal() {
+    if (!isLoggedIn) {
+        openAuthModal();
+        return;
+    }
+    const modal = document.getElementById('wishlistModal');
+    if (!modal) return;
+    
+    const container = document.getElementById('wishlistItems');
+    if (!container) return;
+    
+    if (wishlist.length === 0) {
+        container.innerHTML = `<div class="empty-state"><p>No products in wishlist</p></div>`;
+    } else {
+        const products = getProducts();
+        const wishlistProducts = products.filter(p => wishlist.includes(p.id));
+        container.innerHTML = wishlistProducts.map(p => `
+            <div class="wishlist-item">
+                <img src="${p.image}" alt="${p.name}" onclick="openProductModal(${p.id})" style="cursor: pointer;">
+                <div class="wishlist-item-info">
+                    <h4 onclick="openProductModal(${p.id})" style="cursor: pointer;">${p.name}</h4>
+                    <p class="price">$${p.price}</p>
+                    <div class="wishlist-item-actions">
+                        <button class="add-cart-btn" onclick="addToCart(${p.id}); toggleWishlist(${p.id});">Add to Cart</button>
+                        <button class="remove-btn" onclick="toggleWishlist(${p.id})">✕</button>
+                    </div>
+                </div>
+            </div>
+        `).join('');
+    }
+    
+    modal.classList.add('active');
+    document.body.style.overflow = 'hidden';
+}
+
+function closeWishlistModal() {
+    document.getElementById('wishlistModal').classList.remove('active');
+    document.body.style.overflow = '';
 }
 
 function openAuthModal() {
@@ -48,24 +192,39 @@ function switchAuth(tab) {
     if (tab === 'login') {
         loginForm.style.display = 'block';
         registerForm.style.display = 'none';
-        title.textContent = 'Login';
-        subtitle.textContent = 'Welcome back! Please login to continue.';
+        title.textContent = 'Welcome Back';
+        subtitle.textContent = 'Sign in to your account';
     } else {
         loginForm.style.display = 'none';
         registerForm.style.display = 'block';
         title.textContent = 'Create Account';
-        subtitle.textContent = 'Join us to start shopping!';
+        subtitle.textContent = 'Join us today';
     }
 }
 
 function handleLogin(event) {
     event.preventDefault();
     const form = event.target;
-    const email = form.querySelector('input[type="email"]').value;
+    const email = form.querySelector('input[type="text"], input[type="email"]').value;
     const password = form.querySelector('input[type="password"]').value;
     
+    if (!email) {
+        showNotification('Please enter your email or phone number!');
+        return;
+    }
+    
+    if (!password) {
+        showNotification('Please enter your password!');
+        return;
+    }
+    
+    if (password.length < 8) {
+        showNotification('Password must be at least 8 characters!');
+        return;
+    }
+    
     const users = JSON.parse(localStorage.getItem('users') || '[]');
-    const user = users.find(u => u.email === email && u.password === password);
+    const user = users.find(u => (u.email === email || u.phone === email) && u.password === password);
     
     if (user) {
         currentUser = {
@@ -79,10 +238,9 @@ function handleLogin(event) {
         localStorage.setItem('user', JSON.stringify(currentUser));
         updateUserUI();
         closeAuthModal();
-        checkAccess();
         showNotification('Welcome back, ' + currentUser.name + '!');
     } else {
-        showNotification('Invalid email or password!');
+        showNotification('Invalid email/phone or password!');
     }
 }
 
@@ -93,10 +251,24 @@ function handleRegister(event) {
     const email = form.querySelector('input[type="email"]').value;
     const phone = form.querySelector('input[type="tel"]').value;
     const password = form.querySelector('input[type="password"]').value;
-    const confirmPassword = form.querySelectorAll('input[type="password"]')[1].value;
     
-    if (password !== confirmPassword) {
-        showNotification('Passwords do not match!');
+    if (!name || name.length < 2) {
+        showNotification('Please enter a valid name!');
+        return;
+    }
+    
+    if (!email || !email.includes('@')) {
+        showNotification('Please enter a valid email address!');
+        return;
+    }
+    
+    if (!phone || phone.length < 10) {
+        showNotification('Please enter a valid phone number!');
+        return;
+    }
+    
+    if (!password || password.length < 8) {
+        showNotification('Password must be at least 8 characters!');
         return;
     }
     
@@ -124,131 +296,16 @@ function handleRegister(event) {
     
     updateUserUI();
     closeAuthModal();
-    checkAccess();
-    showNotification('Welcome to ባህላዊ ለምንግር, ' + currentUser.name + '!');
-}
-
-let googleClient;
-
-function initOAuth() {
-    if (typeof google !== 'undefined') {
-        googleClient = google.accounts.oauth2.init({
-            client_id: document.querySelector('meta[name="google-signin-client_id"]')?.content,
-            scope: 'profile email'
-        });
-    }
-    
-    if (typeof FB !== 'undefined') {
-        FB.init({
-            appId: document.querySelector('meta[name="facebook-app-id"]')?.content,
-            cookie: true,
-            xfbml: true,
-            version: 'v18.0'
-        });
-    }
-    
-    if (typeof emailjs !== 'undefined') {
-        emailjs.init('YOUR_EMAILJS_PUBLIC_KEY');
-    }
+    showNotification('Welcome to Habesha Traditional, ' + currentUser.name + '!');
 }
 
 function googleSignIn() {
-    closeAuthModal();
-    
-    if (!googleClient || googleClient.client_id === 'YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com') {
-        showNotification('Please configure your Google Client ID in the HTML');
-        return;
-    }
-    
-    const popup = google.accounts.oauth2.initTokenClient({
-        client_id: googleClient.client_id,
-        scope: 'profile email',
-        callback: (response) => {
-            if (response.error) {
-                showNotification('Google sign-in failed: ' + response.error);
-                return;
-            }
-            
-            fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
-                headers: { 'Authorization': 'Bearer ' + response.access_token }
-            })
-            .then(res => res.json())
-            .then(userInfo => {
-                completeOAuthLogin(userInfo.name || userInfo.email, userInfo.email, 'google');
-            })
-            .catch(() => {
-                completeOAuthLogin('Google User', 'google_user@gmail.com', 'google');
-            });
-        }
-    });
-    
-    popup.requestAccessToken();
+    showNotification('Google sign-in requires API configuration');
 }
 
 function facebookSignIn() {
-    closeAuthModal();
-    
-    const appId = document.querySelector('meta[name="facebook-app-id"]')?.content;
-    if (!appId || appId === 'YOUR_FACEBOOK_APP_ID') {
-        showNotification('Please configure your Facebook App ID in the HTML');
-        return;
-    }
-    
-    FB.login((response) => {
-        if (response.status === 'connected') {
-            FB.api('/me', { fields: 'name,email' }, (userInfo) => {
-                completeOAuthLogin(userInfo.name || 'Facebook User', userInfo.email || 'facebook_user@facebook.com', 'facebook');
-            });
-        } else {
-            showNotification('Facebook sign-in was cancelled');
-        }
-    }, { scope: 'email' });
+    showNotification('Facebook sign-in requires API configuration');
 }
-
-function completeOAuthLogin(name, email, provider) {
-    const users = JSON.parse(localStorage.getItem('users') || '[]');
-    let user = users.find(u => u.email === email);
-    
-    if (!user) {
-        user = { 
-            name: name, 
-            email: email, 
-            phone: '', 
-            address: '', 
-            password: 'social_' + provider,
-            provider: provider
-        };
-        users.push(user);
-        localStorage.setItem('users', JSON.stringify(users));
-    }
-    
-    currentUser = {
-        name: user.name,
-        email: user.email,
-        phone: user.phone || '',
-        address: user.address || '',
-        avatar: user.name.charAt(0).toUpperCase()
-    };
-    isLoggedIn = true;
-    localStorage.setItem('user', JSON.stringify(currentUser));
-    updateUserUI();
-    checkAccess();
-    showNotification('Successfully logged in with ' + (provider === 'google' ? 'Google' : 'Facebook') + '!');
-}
-
-function googleSignOut() {
-    const token = google.accounts.oauth2.getToken();
-    if (token) {
-        google.accounts.oauth2.revoke(token.access_token);
-    }
-}
-
-window.addEventListener('load', initOAuth);
-window.addEventListener('load', function() {
-    if (typeof emailjs !== 'undefined') {
-        emailjs.init('YOUR_EMAILJS_PUBLIC_KEY');
-    }
-});
 
 function logout() {
     isLoggedIn = false;
@@ -256,7 +313,6 @@ function logout() {
     localStorage.removeItem('user');
     updateUserUI();
     toggleUserMenu();
-    checkAccess();
     showNotification('Logged out successfully!');
 }
 
@@ -265,7 +321,17 @@ function toggleUserMenu() {
         openAuthModal();
         return;
     }
-    document.getElementById('userMenu').classList.toggle('active');
+    const userMenu = document.getElementById('userMenu');
+    if (userMenu) {
+        userMenu.classList.toggle('active');
+    }
+}
+
+function closeUserMenu() {
+    const userMenu = document.getElementById('userMenu');
+    if (userMenu) {
+        userMenu.classList.remove('active');
+    }
 }
 
 function checkLoginStatus() {
@@ -275,102 +341,25 @@ function checkLoginStatus() {
         isLoggedIn = true;
         updateUserUI();
     }
-    checkAccess();
-}
-
-function checkAccess() {
-    return isLoggedIn && currentUser;
-}
-
-
-
-function showGateRegister() {
-    event.preventDefault();
-    document.getElementById('gateLoginForm').style.display = 'none';
-    document.getElementById('gateRegisterForm').style.display = 'block';
-}
-
-function handleGateLogin(event) {
-    event.preventDefault();
-    const form = event.target;
-    const email = form.querySelector('input[type="email"]').value;
-    const password = form.querySelector('input[type="password"]').value;
-    
-    const users = JSON.parse(localStorage.getItem('users') || '[]');
-    const user = users.find(u => u.email === email && u.password === password);
-    
-    if (user) {
-        currentUser = {
-            name: user.name,
-            email: user.email,
-            phone: user.phone || '',
-            address: user.address || '',
-            avatar: user.name.charAt(0).toUpperCase()
-        };
-        isLoggedIn = true;
-        localStorage.setItem('user', JSON.stringify(currentUser));
-        updateUserUI();
-        checkAccess();
-        showNotification('Welcome back, ' + currentUser.name + '!');
-    } else {
-        showNotification('Invalid email or password!');
-    }
-}
-
-function handleGateRegister(event) {
-    event.preventDefault();
-    const form = event.target;
-    const name = form.querySelector('input[type="text"]').value;
-    const email = form.querySelector('input[type="email"]').value;
-    const password = form.querySelector('input[type="password"]').value;
-    const confirmPassword = form.querySelectorAll('input[type="password"]')[1].value;
-    
-    if (password !== confirmPassword) {
-        showNotification('Passwords do not match!');
-        return;
-    }
-    
-    const users = JSON.parse(localStorage.getItem('users') || '[]');
-    
-    if (users.find(u => u.email === email)) {
-        showNotification('Email already registered!');
-        return;
-    }
-    
-    const newUser = { name, email, phone: '', address: '', password };
-    users.push(newUser);
-    localStorage.setItem('users', JSON.stringify(users));
-    
-    currentUser = {
-        name: name,
-        email: email,
-        phone: '',
-        address: '',
-        avatar: name.charAt(0).toUpperCase()
-    };
-    
-    isLoggedIn = true;
-    localStorage.setItem('user', JSON.stringify(currentUser));
-    
-    updateUserUI();
-    checkAccess();
-    showNotification('Welcome to ባህላዊ ለምንግር, ' + currentUser.name + '!');
 }
 
 function updateUserUI() {
-    const userText = document.querySelectorAll('.user-text');
+    const headerUserName = document.getElementById('headerUserName');
     const userMenu = document.getElementById('userMenu');
     
     if (isLoggedIn && currentUser) {
-        userText.forEach(el => el.textContent = currentUser.name);
+        if (headerUserName) headerUserName.textContent = currentUser.name;
         
         if (userMenu) {
-            document.getElementById('userAvatar').textContent = currentUser.avatar;
-            document.getElementById('userName').textContent = currentUser.name;
-            document.getElementById('userEmail').textContent = currentUser.email;
+            const avatarEl = document.getElementById('userAvatar');
+            const nameEl = document.getElementById('userName');
+            const emailEl = document.getElementById('userEmail');
+            if (avatarEl) avatarEl.textContent = currentUser.avatar;
+            if (nameEl) nameEl.textContent = currentUser.name;
+            if (emailEl) emailEl.textContent = currentUser.email;
         }
     } else {
-        userText.forEach(el => el.textContent = 'Login');
+        if (headerUserName) headerUserName.textContent = 'Sign in';
     }
 }
 
@@ -384,9 +373,168 @@ function closeCart() {
     document.body.style.overflow = '';
 }
 
+function getProducts() {
+    return [
+        { id: 1, name: 'Handwoven Habesha Kemis - Traditional Ethiopian Dress', price: 8500, category: 'habesha', image: 'https://images.pexels.com/photos/2736832/pexels-photo-2736832.jpeg?auto=compress&cs=tinysrgb&w=400', rating: 5, reviews: 2847 },
+        { id: 2, name: 'Handwoven Leather Sandals - Artisan Crafted', price: 5500, category: 'shoes', image: 'https://images.pexels.com/photos/267202/pexels-photo-267202.jpeg?auto=compress&cs=tinysrgb&w=400', rating: 5, reviews: 1523 },
+        { id: 3, name: 'Festival Kemis - Hand-Dyed Cotton', price: 12000, category: 'habesha', image: 'https://images.pexels.com/photos/3617500/pexels-photo-3617500.jpeg?auto=compress&cs=tinysrgb&w=400', rating: 4, reviews: 856 },
+        { id: 4, name: "Men's Habesha Kemis - Classic White Cotton", price: 7500, category: 'mens', image: 'https://images.pexels.com/photos/1222271/pexels-photo-1222271.jpeg?auto=compress&cs=tinysrgb&w=400', rating: 4, reviews: 1234 }
+    ];
+}
+
+function openProductModal(productId) {
+    const products = getProducts();
+    const product = products.find(p => p.id === productId);
+    if (!product) return;
+    
+    addToRecentlyViewed(productId);
+    
+    const modal = document.getElementById('productModal');
+    if (!modal) {
+        showNotification('Product details coming soon!');
+        return;
+    }
+    
+    document.getElementById('productModal').classList.add('active');
+    document.body.style.overflow = 'hidden';
+}
+
+function closeProductModal() {
+    document.getElementById('productModal').classList.remove('active');
+    document.body.style.overflow = '';
+}
+
+function submitReview(productId) {
+    if (!isLoggedIn) {
+        showNotification('Please sign in to write a review!');
+        setTimeout(() => openAuthModal(), 500);
+        return;
+    }
+    
+    const rating = document.querySelector('input[name="rating"]:checked');
+    const reviewText = document.getElementById('reviewText')?.value;
+    
+    if (!rating) {
+        showNotification('Please select a rating!');
+        return;
+    }
+    
+    if (!reviewText || reviewText.trim().length < 10) {
+        showNotification('Please write at least 10 characters!');
+        return;
+    }
+    
+    const review = {
+        id: Date.now(),
+        productId: productId,
+        userId: currentUser.email,
+        userName: currentUser.name,
+        rating: parseInt(rating.value),
+        text: reviewText.trim(),
+        date: new Date().toISOString()
+    };
+    
+    if (!productReviews[productId]) {
+        productReviews[productId] = [];
+    }
+    
+    const existingReview = productReviews[productId].find(r => r.userId === currentUser.email);
+    if (existingReview) {
+        existingReview.rating = review.rating;
+        existingReview.text = review.text;
+        existingReview.date = review.date;
+        showNotification('Review updated successfully!');
+    } else {
+        productReviews[productId].unshift(review);
+        showNotification('Review submitted successfully!');
+    }
+    
+    localStorage.setItem('productReviews', JSON.stringify(productReviews));
+    
+    document.getElementById('reviewText').value = '';
+    const checkedRadio = document.querySelector('input[name="rating"]:checked');
+    if (checkedRadio) checkedRadio.checked = false;
+    
+    updateProductRating(productId);
+}
+function updateProductRating(productId) {
+    const reviews = productReviews[productId] || [];
+    const count = document.querySelector(`.product-card[data-id="${productId}"] .rating-count`);
+    if (count) {
+        const totalReviews = reviews.length || getProducts().find(p => p.id === productId)?.reviews || 0;
+        count.textContent = `(${totalReviews.toLocaleString()})`;
+    }
+    const stars = document.querySelector(`.product-card[data-id="${productId}"] .stars`);
+    if (stars) {
+        const avgRating = reviews.length > 0 
+            ? reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length 
+            : getProducts().find(p => p.id === productId)?.rating || 5;
+        stars.textContent = getStarsHTML(Math.round(avgRating));
+    }
+}
+
+function getStarsHTML(rating) {
+    const fullStar = '★';
+    const emptyStar = '☆';
+    return fullStar.repeat(rating) + emptyStar.repeat(5 - rating);
+}
+
+function getProductReviews(productId) {
+    return productReviews[productId] || [];
+}
+
+function getAverageRating(productId) {
+    const reviews = productReviews[productId] || [];
+    if (reviews.length === 0) {
+        const product = getProducts().find(p => p.id === productId);
+        return product?.rating || 5;
+    }
+    return reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length;
+}
+
+function addToRecentlyViewed(productId) {
+    const existing = recentlyViewed.indexOf(productId);
+    if (existing > -1) {
+        recentlyViewed.splice(existing, 1);
+    }
+    recentlyViewed.unshift(productId);
+    if (recentlyViewed.length > 10) {
+        recentlyViewed.pop();
+    }
+    localStorage.setItem('recentlyViewed', JSON.stringify(recentlyViewed));
+    renderRecentlyViewed();
+}
+
+function renderRecentlyViewed() {
+    const container = document.getElementById('recentlyViewedGrid');
+    if (!container) return;
+    
+    if (recentlyViewed.length === 0) {
+        container.innerHTML = '';
+        return;
+    }
+    
+    const products = getProducts();
+    const recentProducts = recentlyViewed.map(id => products.find(p => p.id === id)).filter(Boolean);
+    
+    container.innerHTML = recentProducts.slice(0, 6).map(p => `
+        <div class="product-card" data-id="${p.id}">
+            <div class="product-image">
+                <img src="${p.image}" alt="${p.name}" onclick="openProductModal(${p.id})" style="cursor: pointer;">
+            </div>
+            <div class="product-info">
+                <h3 class="product-title">${p.name}</h3>
+                <div class="product-price">
+                    <span class="price-current">ETB ${p.price.toLocaleString()}</span>
+                </div>
+            </div>
+        </div>
+    `).join('');
+}
+
 function addToCart(name, price) {
     if (!isLoggedIn) {
-        showNotification('Please login to add items to cart!');
+        showNotification('Please sign in to add items to cart!');
         setTimeout(() => openAuthModal(), 500);
         return;
     }
@@ -397,14 +545,19 @@ function addToCart(name, price) {
     } else {
         cart.push({ name, price, qty: 1 });
     }
+    
+    localStorage.setItem('cart', JSON.stringify(cart));
     updateCartUI();
+    updateHeaderCartCount();
     showNotification(name + ' added to cart!');
     openCart();
 }
 
 function removeFromCart(index) {
     cart.splice(index, 1);
+    localStorage.setItem('cart', JSON.stringify(cart));
     updateCartUI();
+    updateHeaderCartCount();
 }
 
 function updateCartQty(index, change) {
@@ -412,12 +565,13 @@ function updateCartQty(index, change) {
     if (cart[index].qty < 1) {
         cart.splice(index, 1);
     }
+    localStorage.setItem('cart', JSON.stringify(cart));
     updateCartUI();
+    updateHeaderCartCount();
 }
 
 function updateCartUI() {
     const cartItems = document.getElementById('cartItems');
-    const cartCount = document.querySelectorAll('.cart-count');
     const cartTotal = document.getElementById('cartTotal');
     
     if (cart.length === 0) {
@@ -427,6 +581,7 @@ function updateCartUI() {
         cartItems.innerHTML = cart.map((item, index) => {
             total += item.price * item.qty;
             return '<div class="cart-item">' +
+                '<img src="https://images.pexels.com/photos/2736832/pexels-photo-2736832.jpeg?auto=compress&cs=tinysrgb&w=100" alt="' + item.name + '" class="cart-item-img">' +
                 '<div class="cart-item-info">' +
                 '<h4>' + item.name + '</h4>' +
                 '<p class="cart-item-price">ETB ' + item.price.toLocaleString() + '</p>' +
@@ -435,12 +590,19 @@ function updateCartUI() {
                 '<span>' + item.qty + '</span>' +
                 '<button onclick="updateCartQty(' + index + ', 1)">+</button>' +
                 '</div></div>' +
-                '<button class="remove-item" onclick="removeFromCart(' + index + ')">X</button></div>';
+                '<button class="cart-remove" onclick="removeFromCart(' + index + ')">✕</button></div>';
         }).join('');
     }
     
-    cartCount.forEach(el => el.textContent = '(' + cart.length + ')');
     if (cartTotal) cartTotal.textContent = 'ETB ' + cart.reduce((sum, item) => sum + (item.price * item.qty), 0).toLocaleString();
+    updateHeaderCartCount();
+}
+
+function updateHeaderCartCount() {
+    const headerCount = document.getElementById('headerCartCount');
+    if (headerCount) {
+        headerCount.textContent = cart.length;
+    }
 }
 
 function openPaymentModal() {
@@ -451,7 +613,7 @@ function openPaymentModal() {
     
     if (!isLoggedIn) {
         closeCart();
-        showNotification('Please login to checkout!');
+        showNotification('Please sign in to checkout!');
         setTimeout(() => openAuthModal(), 500);
         return;
     }
@@ -488,7 +650,7 @@ function selectPayment(method) {
         const paymentInfo = {
             telebirr: {
                 title: 'Telebirr Payment',
-                info: 'Send payment to: <strong>+251 91 234 5678</strong><br>Account Name: ባህላዊ ለምንግር<br>After payment, enter the transaction ID below.'
+                info: 'Send payment to: <strong>+251 91 234 5678</strong><br>Account Name: HABESHA TRADITIONAL CLOTHE<br>After payment, enter the transaction ID below.'
             },
             cbe: {
                 title: 'Commercial Bank of Ethiopia',
@@ -535,7 +697,7 @@ function createOrder(paymentMethod, ref) {
         paymentRef: ref,
         status: paymentMethod === 'cod' ? 'processing' : 'delivered',
         date: new Date().toISOString(),
-        address: currentUser.address || 'Not provided'
+        address: currentUser?.address || 'Not provided'
     };
     
     const orders = JSON.parse(localStorage.getItem('orders') || '[]');
@@ -546,7 +708,9 @@ function createOrder(paymentMethod, ref) {
     closeCart();
     
     cart = [];
+    localStorage.setItem('cart', JSON.stringify(cart));
     updateCartUI();
+    updateHeaderCartCount();
     
     const paymentNames = {
         telebirr: 'Telebirr',
@@ -555,43 +719,34 @@ function createOrder(paymentMethod, ref) {
         cod: 'Cash on Delivery'
     };
     
-    showNotification('Order placed successfully! Payment via ' + paymentNames[paymentMethod]);
-}
-
-function checkout() {
-    if (cart.length === 0) {
-        showNotification('Your cart is empty!');
-        return;
-    }
-    
-    if (!isLoggedIn) {
-        closeCart();
-        showNotification('Please login to checkout!');
-        setTimeout(() => openAuthModal(), 500);
-        return;
-    }
-    
-    openPaymentModal();
+    showNotification('Order placed successfully!');
 }
 
 function filterProducts() {
-    const filterBtns = document.querySelectorAll('.filter-btn');
     const products = document.querySelectorAll('.product-card');
-    const productCount = document.querySelector('.product-count');
-    const priceRange = document.getElementById('priceRange');
-    const priceValue = document.getElementById('priceValue');
+    const productCount = document.getElementById('productCount');
+    const priceMin = parseInt(document.getElementById('priceMin')?.value) || 0;
+    const priceMax = parseInt(document.getElementById('priceMax')?.value) || 25000;
     
-    const activeFilter = document.querySelector('.filter-btn.active');
-    const filter = activeFilter ? activeFilter.dataset.filter : 'all';
-    const maxPrice = priceRange ? parseInt(priceRange.value) : 25000;
+    const selectedRadio = document.querySelector('.filter-list input[type="radio"]:checked');
+    const selectedCategory = selectedRadio ? selectedRadio.value : '';
     
-    if (priceValue) priceValue.textContent = maxPrice.toLocaleString();
+    const searchInput = document.getElementById('searchInput');
+    const searchTerm = searchInput ? searchInput.value.toLowerCase().trim() : '';
     
     let visibleCount = 0;
     products.forEach(product => {
         const price = parseInt(product.dataset.price);
-        if ((filter === 'all' || product.dataset.category === filter) && price <= maxPrice) {
-            product.style.display = 'block';
+        const category = product.dataset.category;
+        const name = product.querySelector('.product-title')?.textContent.toLowerCase() || '';
+        const desc = product.querySelector('.product-category')?.textContent.toLowerCase() || '';
+        
+        const categoryMatch = !selectedCategory || category === selectedCategory;
+        const priceMatch = price >= priceMin && price <= priceMax;
+        const searchMatch = !searchTerm || name.includes(searchTerm) || desc.includes(searchTerm);
+        
+        if (categoryMatch && priceMatch && searchMatch) {
+            product.style.display = '';
             visibleCount++;
         } else {
             product.style.display = 'none';
@@ -601,21 +756,16 @@ function filterProducts() {
     if (productCount) productCount.textContent = 'Showing ' + visibleCount + ' products';
 }
 
-document.querySelectorAll('.filter-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        filterProducts();
-    });
-});
-
 function sortProducts(value) {
     const grid = document.getElementById('productGrid');
+    if (!grid) return;
+    
     const products = Array.from(document.querySelectorAll('.product-card'));
     
     products.sort((a, b) => {
         const priceA = parseInt(a.dataset.price);
         const priceB = parseInt(b.dataset.price);
+        
         if (value === 'price-low') return priceA - priceB;
         if (value === 'price-high') return priceB - priceA;
         return 0;
@@ -630,49 +780,377 @@ function handleSubscribe(event) {
     event.target.reset();
 }
 
-function handleContactSubmit(event) {
+function toggleCompare(productId) {
+    const index = compareList.indexOf(productId);
+    if (index > -1) {
+        compareList.splice(index, 1);
+        showNotification('Removed from compare list');
+    } else {
+        if (compareList.length >= 4) {
+            showNotification('Maximum 4 products to compare');
+            return;
+        }
+        compareList.push(productId);
+        showNotification('Added to compare');
+    }
+    localStorage.setItem('compareList', JSON.stringify(compareList));
+    updateCompareSidebar();
+    updateProductCompareButtons();
+}
+
+function isInCompareList(productId) {
+    return compareList.includes(productId);
+}
+
+function updateCompareSidebar() {
+    const sidebar = document.getElementById('compareSidebar');
+    if (!sidebar) return;
+    
+    const count = document.getElementById('compareCount');
+    if (count) count.textContent = compareList.length;
+    
+    if (compareList.length > 0) {
+        sidebar.classList.add('active');
+    } else {
+        sidebar.classList.remove('active');
+    }
+}
+
+function updateProductCompareButtons() {
+    document.querySelectorAll('.compare-btn').forEach(btn => {
+        const productId = parseInt(btn.getAttribute('data-id'));
+        if (isInCompareList(productId)) {
+            btn.classList.add('active');
+            btn.innerHTML = '⚖';
+        } else {
+            btn.classList.remove('active');
+            btn.innerHTML = '⚖';
+        }
+    });
+}
+
+function openCompareModal() {
+    if (compareList.length < 2) {
+        showNotification('Add at least 2 products to compare!');
+        return;
+    }
+    
+    const modal = document.getElementById('compareModal');
+    if (!modal) return;
+    
+    const products = getProducts();
+    const compareProducts = compareList.map(id => products.find(p => p.id === id));
+    
+    const tbody = document.getElementById('compareTableBody');
+    if (!tbody) return;
+    
+    let html = '<tr><td>Image</td>';
+    compareProducts.forEach(p => {
+        html += `<td><img src="${p.image}" alt="${p.name}"></td>`;
+    });
+    html += '</tr><tr><td>Name</td>';
+    compareProducts.forEach(p => {
+        html += `<td>${p.name}</td>`;
+    });
+    html += '</tr><tr><td>Price</td>';
+    compareProducts.forEach(p => {
+        html += `<td>ETB ${p.price.toLocaleString()}</td>`;
+    });
+    html += '</tr><tr><td>Category</td>';
+    compareProducts.forEach(p => {
+        html += `<td>${p.category}</td>`;
+    });
+    html += '</tr><tr><td>Rating</td>';
+    compareProducts.forEach(p => {
+        html += `<td>${getStarsHTML(Math.round(getAverageRating(p.id)))}</td>`;
+    });
+    html += '</tr><tr><td>Reviews</td>';
+    compareProducts.forEach(p => {
+        const reviews = getProductReviews(p.id);
+        html += `<td>${reviews.length}</td>`;
+    });
+    html += '</tr><tr><td>Stock</td>';
+    compareProducts.forEach(() => {
+        html += `<td><span style="color: var(--success);">✓ In Stock</span></td>`;
+    });
+    html += '</tr><tr><td>Action</td>';
+    compareProducts.forEach(p => {
+        html += `<td><button class="add-cart-btn" onclick="addToCart('${p.name}', ${p.price})">Add to Cart</button></td>`;
+    });
+    html += '</tr>';
+    
+    tbody.innerHTML = html;
+    modal.classList.add('active');
+    document.body.style.overflow = 'hidden';
+}
+
+function closeCompareModal() {
+    document.getElementById('compareModal').classList.remove('active');
+    document.body.style.overflow = '';
+}
+
+function clearCompare() {
+    compareList = [];
+    localStorage.setItem('compareList', JSON.stringify(compareList));
+    updateCompareSidebar();
+    updateProductCompareButtons();
+    showNotification('Compare list cleared!');
+}
+
+function openSizeGuide() {
+    const modal = document.getElementById('sizeGuideModal');
+    if (modal) {
+        modal.classList.add('active');
+        document.body.style.overflow = 'hidden';
+    }
+}
+
+function closeSizeGuide() {
+    document.getElementById('sizeGuideModal').classList.remove('active');
+    document.body.style.overflow = '';
+}
+
+function openBulkOrderForm() {
+    const modal = document.getElementById('bulkOrderModal');
+    if (modal) {
+        modal.classList.add('active');
+        document.body.style.overflow = 'hidden';
+    }
+}
+
+function closeBulkOrderModal() {
+    document.getElementById('bulkOrderModal').classList.remove('active');
+    document.body.style.overflow = '';
+}
+
+function submitBulkOrder(event) {
     event.preventDefault();
+    const form = event.target;
+    const data = new FormData(form);
     
-    const name = document.getElementById('contactName').value;
-    const email = document.getElementById('contactEmail').value;
-    const phone = document.getElementById('contactPhone').value;
-    const subject = document.getElementById('contactSubject').value;
-    const message = document.getElementById('contactMessage').value;
-    const submitBtn = document.getElementById('submitBtn');
+    showNotification('Your bulk order request has been submitted! We will contact you within 24 hours.');
+    form.reset();
+    closeBulkOrderModal();
+}
+
+function openOrderTracking(orderId) {
+    const modal = document.getElementById('orderTrackingModal');
+    if (!modal) return;
     
-    submitBtn.textContent = 'Sending...';
-    submitBtn.disabled = true;
+    const orders = JSON.parse(localStorage.getItem('orders') || '[]');
+    const order = orders.find(o => o.id === orderId);
     
-    const templateParams = {
-        from_name: name,
-        from_email: email,
-        phone: phone || 'Not provided',
-        subject: subject,
-        message: message,
-        to_email: 'info@habeshatraditional.com'
+    if (!order) {
+        showNotification('Order not found!');
+        return;
+    }
+    
+    const timeline = document.getElementById('orderTrackingTimeline');
+    if (timeline) {
+        const statuses = ['pending', 'processing', 'shipped', 'outForDelivery', 'delivered'];
+        const currentIndex = statuses.indexOf(order.status);
+        
+        timeline.innerHTML = statuses.map((status, index) => {
+            const isCompleted = index <= currentIndex;
+            const isCurrent = index === currentIndex;
+            const statusLabels = {
+                pending: 'Order Placed',
+                processing: 'Processing',
+                shipped: 'Shipped',
+                outForDelivery: 'Out for Delivery',
+                delivered: 'Delivered'
+            };
+            return `
+                <div class="tracking-step ${isCompleted ? 'completed' : ''} ${isCurrent ? 'current' : ''}">
+                    <div class="step-icon">${isCompleted ? '✓' : ''}</div>
+                    <div class="step-info">
+                        <strong>${statusLabels[status]}</strong>
+                        ${isCurrent ? '<p>Current status</p>' : ''}
+                    </div>
+                </div>
+            `;
+        }).join('');
+    }  
+    modal.classList.add('active');
+    document.body.style.overflow = 'hidden';
+}
+function closeOrderTracking() {
+    document.getElementById('orderTrackingModal').classList.remove('active');
+    document.body.style.overflow = '';
+}
+function reorderItems(orderId) {
+    const orders = JSON.parse(localStorage.getItem('orders') || '[]');
+    const order = orders.find(o => o.id === orderId);
+    
+    if (!order) return;
+    
+    order.items.forEach(item => {
+        addToCart(item.name, item.price);
+    });
+    
+    showNotification('Items added to cart! Review your cart to checkout.');
+}
+
+function savePaymentMethod(paymentData) {
+    if (!isLoggedIn) {
+        openAuthModal();
+        return;
+    }
+    
+    let savedPayments = JSON.parse(localStorage.getItem('savedPayments') || '[]');
+    const existingIndex = savedPayments.findIndex(p => p.last4 === paymentData.last4);
+    
+    if (existingIndex > -1) {
+        savedPayments[existingIndex] = { ...savedPayments[existingIndex], ...paymentData };
+    } else {
+        savedPayments.push({
+            ...paymentData,
+            id: Date.now(),
+            userId: currentUser.email
+        });
+    }
+    
+    localStorage.setItem('savedPayments', JSON.stringify(savedPayments));
+    showNotification('Card saved!');
+}
+
+function removePaymentMethod(paymentId) {
+    let savedPayments = JSON.parse(localStorage.getItem('savedPayments') || '[]');
+    savedPayments = savedPayments.filter(p => p.id !== paymentId);
+    localStorage.setItem('savedPayments', JSON.stringify(savedPayments));
+    showNotification('Payment method removed');
+    renderSavedPayments();
+}
+
+function setDefaultPayment(paymentId) {
+    let savedPayments = JSON.parse(localStorage.getItem('savedPayments') || '[]');
+    savedPayments = savedPayments.map(p => ({
+        ...p,
+        isDefault: p.id === paymentId
+    }));
+    localStorage.setItem('savedPayments', JSON.stringify(savedPayments));
+    showNotification('Default payment method updated');
+    renderSavedPayments();
+}
+
+function renderSavedPayments() {
+    const container = document.getElementById('savedPaymentsList');
+    if (!container) return;
+    
+    const savedPayments = JSON.parse(localStorage.getItem('savedPayments') || '[]')
+        .filter(p => p.userId === currentUser?.email);
+    
+    if (savedPayments.length === 0) {
+        container.innerHTML = `<p style="color: var(--text-light); text-align: center; padding: 20px;">No saved payment methods</p>`;
+        return;
+    }
+    
+    container.innerHTML = savedPayments.map(p => `
+        <div class="payment-card ${p.isDefault ? 'default' : ''}">
+            <div class="payment-card-info">
+                <div class="payment-card-icon">${p.type === 'telebirr' ? 'T' : p.last4}</div>
+                <div>
+                    <strong>${p.type === 'telebirr' ? 'Telebirr' : '**** ' + p.last4}</strong>
+                    ${p.isDefault ? '<span style="color: var(--primary); font-size: 12px; margin-left: 8px;">Default</span>' : ''}
+                </div>
+            </div>
+            <div class="payment-card-actions">
+                ${!p.isDefault ? `<button class="default-btn" onclick="setDefaultPayment(${p.id})">Set Default</button>` : ''}
+                <button class="remove-btn" onclick="removePaymentMethod(${p.id})">Remove</button>
+            </div>
+        </div>
+    `).join('');
+}
+
+function openNotificationSettings() {
+    const modal = document.getElementById('notificationModal');
+    if (!modal) return;
+    
+    const settings = JSON.parse(localStorage.getItem('notificationSettings') || '{}');
+    if (!currentUser) {
+        showNotification('Please sign in first!');
+        return;
+    }
+    
+    const userSettings = settings[currentUser.email] || {
+        emailNotifications: true,
+        smsNotifications: true,
+        orderUpdates: true,
+        promotionalEmails: true
     };
     
-    if (typeof emailjs !== 'undefined' && emailjs._publicKey !== 'YOUR_EMAILJS_PUBLIC_KEY') {
-        emailjs.send('YOUR_EMAILJS_SERVICE_ID', 'YOUR_EMAILJS_TEMPLATE_ID', templateParams)
-            .then(function() {
-                showNotification('Message sent successfully! We will contact you soon.');
-                event.target.reset();
-            }, function(error) {
-                console.log('EmailJS Error:', error);
-                showNotification('Message sent! (Demo mode - email will be configured)');
-                event.target.reset();
-            })
-            .finally(function() {
-                submitBtn.textContent = 'Send Message';
-                submitBtn.disabled = false;
-            });
-    } else {
-        console.log('Contact Form Data:', templateParams);
-        showNotification('Message sent successfully! We will contact you soon.');
-        event.target.reset();
-        submitBtn.textContent = 'Send Message';
-        submitBtn.disabled = false;
-    }
+    document.getElementById('emailNotifToggle').checked = userSettings.emailNotifications;
+    document.getElementById('smsNotifToggle').checked = userSettings.smsNotifications;
+    document.getElementById('orderUpdatesToggle').checked = userSettings.orderUpdates;
+    document.getElementById('promoEmailsToggle').checked = userSettings.promotionalEmails;
+    
+    modal.classList.add('active');
+    document.body.style.overflow = 'hidden';
+}
+
+function closeNotificationModal() {
+    document.getElementById('notificationModal').classList.remove('active');
+    document.body.style.overflow = '';
+}
+
+function saveNotificationSettings() {
+    const settings = JSON.parse(localStorage.getItem('notificationSettings') || '{}');
+    settings[currentUser.email] = {
+        emailNotifications: document.getElementById('emailNotifToggle').checked,
+        smsNotifications: document.getElementById('smsNotifToggle').checked,
+        orderUpdates: document.getElementById('orderUpdatesToggle').checked,
+        promotionalEmails: document.getElementById('promoEmailsToggle').checked
+    };
+    localStorage.setItem('notificationSettings', JSON.stringify(settings));
+    showNotification('Preferences saved!');
+    closeNotificationModal();
+}
+
+function getShoppingInsights() {
+    const orders = JSON.parse(localStorage.getItem('orders') || '[]');
+    const userOrders = orders.filter(o => o.userId === currentUser?.email);
+    
+    const totalSpent = userOrders.reduce((sum, o) => sum + o.total, 0);
+    const totalItems = userOrders.reduce((sum, o) => sum + o.items.reduce((s, i) => s + i.qty, 0), 0);
+    
+    const categoryCount = {};
+    userOrders.forEach(o => {
+        o.items.forEach(i => {
+            const product = getProducts().find(p => p.name === i.name);
+            if (product) {
+                categoryCount[product.category] = (categoryCount[product.category] || 0) + i.qty;
+            }
+        });
+    });
+    
+    const favoriteCategory = Object.entries(categoryCount).sort((a, b) => b[1] - a[1])[0]?.[0] || 'N/A';
+    
+    return {
+        totalOrders: userOrders.length,
+        totalSpent,
+        totalItems,
+        favoriteCategory
+    };
+}
+
+function openShoppingInsights() {
+    const modal = document.getElementById('insightsModal');
+    if (!modal) return;
+    
+    const insights = getShoppingInsights();
+    
+    document.getElementById('insightTotalOrders').textContent = insights.totalOrders;
+    document.getElementById('insightTotalSpent').textContent = 'ETB ' + insights.totalSpent.toLocaleString();
+    document.getElementById('insightTotalItems').textContent = insights.totalItems;
+    document.getElementById('insightFavoriteCategory').textContent = insights.favoriteCategory.charAt(0).toUpperCase() + insights.favoriteCategory.slice(1);
+    
+    modal.classList.add('active');
+    document.body.style.overflow = 'hidden';
+}
+
+function closeInsightsModal() {
+    document.getElementById('insightsModal').classList.remove('active');
+    document.body.style.overflow = '';
 }
 
 function showNotification(message) {
@@ -694,13 +1172,13 @@ function showNotification(message) {
 document.addEventListener('click', function(e) {
     const authModal = document.getElementById('authModal');
     const userMenu = document.getElementById('userMenu');
-    const userIcon = document.querySelector('.user-icon');
+    const userIcon = document.querySelector('.header-action');
     
-    if (authModal && authModal.classList.contains('active') && !e.target.closest('.auth-modal-content') && !e.target.closest('.user-icon')) {
+    if (authModal && authModal.classList.contains('active') && !e.target.closest('.modal-content') && !e.target.closest('.header-action')) {
         closeAuthModal();
     }
     
-    if (userMenu && userMenu.classList.contains('active') && !e.target.closest('.user-menu') && !e.target.closest('.user-icon')) {
+    if (userMenu && userMenu.classList.contains('active') && !e.target.closest('.user-menu') && !e.target.closest('.header-action')) {
         userMenu.classList.remove('active');
     }
 });
@@ -723,47 +1201,57 @@ function closeProfileModal() {
 function updateProfileModal() {
     if (!currentUser) return;
     
-    document.getElementById('profileAvatar').textContent = currentUser.avatar;
-    document.getElementById('profileName').textContent = currentUser.name;
-    document.getElementById('profileEmail').textContent = currentUser.email;
+    const avatarEl = document.getElementById('profileAvatar');
+    const nameEl = document.getElementById('profileName');
+    const emailEl = document.getElementById('profileEmail');
     
-    if (document.getElementById('editName')) {
-        document.getElementById('editName').value = currentUser.name;
-        document.getElementById('editEmail').value = currentUser.email;
-        document.getElementById('editPhone').value = currentUser.phone || '';
-        document.getElementById('editAddress').value = currentUser.address || '';
-    }
+    if (avatarEl) avatarEl.textContent = currentUser.avatar;
+    if (nameEl) nameEl.textContent = currentUser.name;
+    if (emailEl) emailEl.textContent = currentUser.email;
+    
+    const editName = document.getElementById('editName');
+    const editEmail = document.getElementById('editEmail');
+    const editPhone = document.getElementById('editPhone');
+    const editAddress = document.getElementById('editAddress');
+    
+    if (editName) editName.value = currentUser.name;
+    if (editEmail) editEmail.value = currentUser.email;
+    if (editPhone) editPhone.value = currentUser.phone || '';
+    if (editAddress) editAddress.value = currentUser.address || '';
     
     renderOrderHistory();
 }
 
 function showProfileTab(tab) {
+    event?.preventDefault();
     document.querySelectorAll('.profile-tab').forEach(t => t.classList.remove('active'));
     document.querySelectorAll('.profile-content').forEach(c => c.style.display = 'none');
     
-    event.target.classList.add('active');
+    const tabs = document.querySelectorAll('.profile-tab');
+    tabs.forEach(t => {
+        if (t.textContent.toLowerCase().includes(tab === 'edit' ? 'edit' : 'order')) {
+            t.classList.add('active');
+        }
+    });
+    
+    const tabContent = document.getElementById(tab === 'edit' ? 'editProfileTab' : 'ordersProfileTab');
+    if (tabContent) tabContent.style.display = 'block';
     
     if (tab === 'edit') {
-        document.getElementById('editProfileTab').style.display = 'block';
         updateProfileModal();
     } else if (tab === 'orders') {
-        document.getElementById('ordersProfileTab').style.display = 'block';
         renderOrderHistory();
-    } else if (tab === 'settings') {
-        document.getElementById('settingsProfileTab').style.display = 'block';
-        document.getElementById('currentPassword').value = '';
-        document.getElementById('newPassword').value = '';
-        document.getElementById('confirmNewPassword').value = '';
     }
 }
 
 function renderOrderHistory() {
     const orderHistory = document.getElementById('orderHistory');
-    const orders = JSON.parse(localStorage.getItem('orders') || '[]');
-    const userOrders = orders.filter(o => o.paymentMethod);
+    if (!orderHistory) return;
     
-    if (userOrders.length === 0) {
-        orderHistory.innerHTML = '<p class="no-orders">No orders yet</p>';
+    const orders = JSON.parse(localStorage.getItem('orders') || '[]');
+    
+    if (orders.length === 0) {
+        orderHistory.innerHTML = '<p style="text-align: center; padding: 40px; color: var(--text-light);">No orders yet</p>';
         return;
     }
     
@@ -774,14 +1262,14 @@ function renderOrderHistory() {
         delivered: 'Delivered'
     };
     
-    orderHistory.innerHTML = userOrders.map(order => {
+    orderHistory.innerHTML = orders.slice(0, 10).map(order => {
         const date = new Date(order.date).toLocaleDateString('en-US', {
             year: 'numeric', month: 'short', day: 'numeric'
         });
         
         const items = order.items.map(item => 
             item.name + ' (x' + item.qty + ')'
-        ).join('<br>');
+        ).join(', ');
         
         return '<div class="order-item">' +
             '<div class="order-header">' +
@@ -798,10 +1286,10 @@ function renderOrderHistory() {
 function updateProfile(event) {
     event.preventDefault();
     
-    const name = document.getElementById('editName').value;
-    const email = document.getElementById('editEmail').value;
-    const phone = document.getElementById('editPhone').value;
-    const address = document.getElementById('editAddress').value;
+    const name = document.getElementById('editName')?.value;
+    const email = document.getElementById('editEmail')?.value;
+    const phone = document.getElementById('editPhone')?.value;
+    const address = document.getElementById('editAddress')?.value;
     
     const users = JSON.parse(localStorage.getItem('users') || '[]');
     const userIndex = users.findIndex(u => u.email === currentUser.email);
@@ -829,42 +1317,21 @@ function updateProfile(event) {
     showNotification('Profile updated successfully!');
 }
 
-function changePassword(event) {
-    event.preventDefault();
+document.addEventListener('DOMContentLoaded', function() {
+    filterProducts();
     
-    const currentPassword = document.getElementById('currentPassword').value;
-    const newPassword = document.getElementById('newPassword').value;
-    const confirmNewPassword = document.getElementById('confirmNewPassword').value;
-    
-    if (newPassword !== confirmNewPassword) {
-        showNotification('New passwords do not match!');
-        return;
-    }
-    
-    if (newPassword.length < 6) {
-        showNotification('Password must be at least 6 characters!');
-        return;
-    }
-    
-    const users = JSON.parse(localStorage.getItem('users') || '[]');
-    const userIndex = users.findIndex(u => u.email === currentUser.email);
-    
-    if (userIndex === -1) {
-        showNotification('User not found!');
-        return;
-    }
-    
-    if (users[userIndex].password !== currentPassword) {
-        showNotification('Current password is incorrect!');
-        return;
-    }
-    
-    users[userIndex].password = newPassword;
-    localStorage.setItem('users', JSON.stringify(users));
-    
-    document.getElementById('currentPassword').value = '';
-    document.getElementById('newPassword').value = '';
-    document.getElementById('confirmNewPassword').value = '';
-    
-    showNotification('Password changed successfully!');
-}
+    const priceInputs = document.querySelectorAll('#priceMin, #priceMax');
+    priceInputs.forEach(input => {
+        input.addEventListener('input', filterProducts);
+    });
+
+    document.addEventListener('click', function(e) {
+        const userMenu = document.getElementById('userMenu');
+        const userMenuWrapper = document.querySelector('.user-menu-wrapper');
+        if (userMenu && userMenuWrapper && !userMenuWrapper.contains(e.target)) {
+            closeUserMenu();
+        }
+    });
+});
+
+

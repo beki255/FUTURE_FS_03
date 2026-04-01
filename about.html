@@ -3,92 +3,143 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>About | HABESHA TRADITIONAL CLOTHE - Ethiopian Fashion</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <title>About Us | HABESHA TRADITIONAL CLOTHE</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
-    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
-    <meta name="google-signin-client_id" content="YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com">
-    <script src="https://accounts.google.com/gsi/client" async defer></script>
-    <meta name="facebook-app-id" content="YOUR_FACEBOOK_APP_ID">
-    <script async defer crossorigin="anonymous" src="https://connect.facebook.net/en_US/sdk.js"></script>
 </head>
 <body>
-    <nav class="navbar">
-        <div class="nav-container">
-            <a href="index.html" class="logo">HABESHA TRADITIONAL CLOTHE</a>
-            <ul class="nav-links">
-                <li><a href="index.html">Home</a></li>
-                <li><a href="shop.html">Shop</a></li>
-                <li><a href="about.html" class="active">About</a></li>
-                <li><a href="contact.html">Contact</a></li>
-            </ul>
-            <div class="nav-icons">
-                <a href="#" class="theme-toggle" onclick="toggleTheme()">
-                    <span class="theme-icon">&#9790;</span>
-                </a>
-                <a href="#" class="user-icon" onclick="openAuthModal()">
-                    <span class="user-text">Login</span>
-                </a>
-                <a href="#" class="cart-icon" onclick="openCart()">
-                    <span>Cart</span>
-                    <span class="cart-count">(0)</span>
-                </a>
-            </div>
-            <div class="hamburger" onclick="toggleMenu()">
-                <span></span>
-                <span></span>
-                <span></span>
+    <div class="top-bar">
+        <div class="container">
+            <div class="top-bar-content">
+                <span>Free Delivery on orders over ETB 5,000 in Addis Ababa!</span>
+                <a href="shop.html">Shop Now</a>
             </div>
         </div>
-    </nav>
+    </div>
+
+    <header class="header">
+        <div class="container">
+            <div class="header-inner">
+                <a href="index.html" class="logo">
+                    <div class="logo-icon">ባህል</div>
+                    <div class="logo-text">
+                        HABESHA
+                        <span>TRADITIONAL CLOTHE</span>
+                    </div>
+                </a>
+                
+                <div class="search-box">
+                    <form>
+                        <select>
+                            <option>All Categories</option>
+                            <option>Habesha Kemis</option>
+                            <option>Men's Traditional</option>
+                            <option>Traditional Shoes</option>
+                        </select>
+                        <input type="text" placeholder="Search for products...">
+                        <button type="submit">Search</button>
+                    </form>
+                </div>
+                
+                <div class="header-actions">
+                    <div class="user-menu-wrapper" style="position: relative;">
+                        <a href="#" class="header-action" onclick="toggleUserMenu(); return false;">
+                            <div class="icon">👤</div>
+                            <div class="text">
+                                <span>Hello, <strong id="headerUserName">Sign in</strong></span>
+                            </div>
+                        </a>
+                        <div class="user-menu" id="userMenu">
+                            <div class="user-menu-header">
+                                <div class="user-avatar" id="userAvatar">J</div>
+                                <div>
+                                    <h4 id="userName">John Doe</h4>
+                                    <p id="userEmail">john@email.com</p>
+                                </div>
+                            </div>
+                            <div class="user-menu-links">
+                                <a href="#" onclick="openProfileModal(); closeUserMenu();"><span>👤</span> My Account</a>
+                                <a href="#" onclick="openProfileModal(); showProfileTab('orders'); closeUserMenu();"><span>📦</span> My Orders</a>
+                            </div>
+                            <button class="logout-btn" onclick="logout()">Logout</button>
+                        </div>
+                    </div>
+                    <a href="#" class="header-action" onclick="openCart()">
+                        <div class="icon">🛒<span class="badge" id="headerCartCount">0</span></div>
+                    </a>
+                </div>
+                <button class="theme-btn" onclick="toggleTheme()">🌙</button>
+            </div>
+        </div>
+        
+        <nav class="nav">
+            <div class="container">
+                <div class="nav-inner">
+                    <div class="nav-links">
+                        <a href="index.html">Home</a>
+                        <a href="shop.html">Shop</a>
+                        <a href="about.html" class="active">About</a>
+                        <a href="contact.html">Contact</a>
+                    </div>
+                </div>
+            </div>
+        </nav>
+    </header>
 
     <div class="cart-sidebar" id="cartSidebar">
         <div class="cart-header">
             <h3>Shopping Cart</h3>
-            <span onclick="closeCart()">X</span>
+            <button class="cart-close" onclick="closeCart()">✕</button>
         </div>
         <div class="cart-items" id="cartItems">
             <p class="cart-empty">Your cart is empty</p>
         </div>
         <div class="cart-footer">
             <div class="cart-total">
-                <span>Total:</span>
+                <span>Subtotal:</span>
                 <span id="cartTotal">ETB 0</span>
             </div>
-            <button onclick="checkout()">Checkout</button>
+            <button onclick="openPaymentModal()">Proceed to Checkout</button>
         </div>
     </div>
 
-    <section class="about-header">
+    <section class="shop-hero">
         <div class="container">
-            <h1>Our Story</h1>
             <div class="breadcrumbs">
-                <a href="index.html">Home</a> / About
+                <a href="index.html">Home</a> / About Us
             </div>
+            <h1>Our Story</h1>
+            <p>Preserving Ethiopian heritage through authentic fashion</p>
         </div>
     </section>
 
-    <section class="about-intro">
+    <section class="products-section" style="padding: 80px 0;">
         <div class="container">
-            <div class="about-intro-grid">
-                <img src="https://images.unsplash.com/photo-1558171813-4c088753af8f?w=600" alt="Ethiopian Traditional Fashion" class="about-intro-image">
-                <div class="about-intro-text">
-                    <span class="section-subtitle">Est. 2020</span>
-                    <h2>Preserving Ethiopian Heritage</h2>
-                    <p>ባህላዊ ለምንግር was born from a passion to preserve and promote authentic Ethiopian traditional fashion. Founded in 2020 by Tinsae Gebre, our boutique connects Ethiopian artisans with fashion lovers worldwide.</p>
-                    <p>We work directly with skilled craftspeople across Ethiopia - from Addis Ababa to Gondar, from Harar to Jimma. Each piece in our collection represents hours of meticulous handwork and centuries of tradition.</p>
-                    <div class="about-stats">
-                        <div class="stat-item">
-                            <span class="stat-number">3K+</span>
-                            <span class="stat-label">Happy Customers</span>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: center; margin-bottom: 80px;">
+                <div>
+                    <img src="https://images.pexels.com/photos/2736832/pexels-photo-2736832.jpeg?auto=compress&cs=tinysrgb&w=600" alt="Ethiopian Fashion" style="width: 100%; border-radius: var(--radius); box-shadow: var(--shadow-lg);">
+                </div>
+                <div>
+                    <span style="display: inline-block; background: linear-gradient(135deg, var(--primary), var(--primary-dark)); color: #fff; padding: 6px 16px; border-radius: 50px; font-size: 12px; font-weight: 600; margin-bottom: 16px;">EST. 2020</span>
+                    <h2 style="font-size: 36px; margin-bottom: 20px;">Preserving Ethiopian Heritage</h2>
+                    <p style="color: var(--text-light); line-height: 1.8; margin-bottom: 16px;">
+                        ባህላዊ ለምንግር was born from a passion to preserve and promote authentic Ethiopian traditional fashion. Founded in 2020 by Tinsae Gebre, our boutique connects Ethiopian artisans with fashion lovers worldwide.
+                    </p>
+                    <p style="color: var(--text-light); line-height: 1.8;">
+                        We work directly with skilled craftspeople across Ethiopia - from Addis Ababa to Gondar, from Harar to Jimma. Each piece in our collection represents hours of meticulous handwork and centuries of tradition.
+                    </p>
+                    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; margin-top: 32px; padding-top: 32px; border-top: 1px solid var(--border);">
+                        <div style="text-align: center;">
+                            <span style="font-size: 32px; font-weight: 800; color: var(--primary); display: block;">3K+</span>
+                            <span style="font-size: 12px; color: var(--text-light);">Happy Customers</span>
                         </div>
-                        <div class="stat-item">
-                            <span class="stat-number">150+</span>
-                            <span class="stat-label">Artisan Partners</span>
+                        <div style="text-align: center;">
+                            <span style="font-size: 32px; font-weight: 800; color: var(--primary); display: block;">150+</span>
+                            <span style="font-size: 12px; color: var(--text-light);">Artisan Partners</span>
                         </div>
-                        <div class="stat-item">
-                            <span class="stat-number">12</span>
-                            <span class="stat-label">Regions Covered</span>
+                        <div style="text-align: center;">
+                            <span style="font-size: 32px; font-weight: 800; color: var(--primary); display: block;">12</span>
+                            <span style="font-size: 12px; color: var(--text-light);">Regions Covered</span>
                         </div>
                     </div>
                 </div>
@@ -96,267 +147,191 @@
         </div>
     </section>
 
-    <section class="values-section">
+    <section style="padding: 80px 0; background: var(--background);">
         <div class="container">
-            <span class="section-subtitle">What We Stand For</span>
-            <h2 class="section-title">Our Values</h2>
-            <div class="values-grid">
-                <div class="value-card">
-                    <div class="value-icon">&#127793;</div>
+            <div class="section-header">
+                <h2>What We Stand For</h2>
+                <p>Our core values drive everything we do</p>
+            </div>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">🌱</div>
                     <h3>Sustainability</h3>
-                    <p>Committed to supporting local artisans and using eco-friendly materials. Every purchase helps preserve traditional craftsmanship.</p>
+                    <p>Committed to supporting local artisans and using eco-friendly materials.</p>
                 </div>
-                <div class="value-card">
-                    <div class="value-icon">&#128147;</div>
+                <div class="feature-card">
+                    <div class="feature-icon">💎</div>
                     <h3>Authenticity</h3>
-                    <p>We guarantee 100% authentic Ethiopian traditional wear. Each piece is handcrafted by skilled artisans using traditional techniques.</p>
+                    <p>100% authentic Ethiopian traditional wear, handcrafted by skilled artisans.</p>
                 </div>
-                <div class="value-card">
-                    <div class="value-icon">&#127758;</div>
+                <div class="feature-card">
+                    <div class="feature-icon">🌍</div>
                     <h3>Cultural Pride</h3>
-                    <p>Celebrating Ethiopian heritage through fashion. We take pride in sharing our rich cultural traditions with the world.</p>
+                    <p>Celebrating Ethiopian heritage through fashion worldwide.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🤝</div>
+                    <h3>Community</h3>
+                    <p>Supporting Ethiopian artisans and their families through fair trade.</p>
                 </div>
             </div>
         </div>
     </section>
 
-    <section class="owner-section">
+    <section class="products-section">
         <div class="container">
-            <div class="owner-grid">
-                <img src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=600" alt="Our Founder" class="owner-image">
-                <div class="owner-text">
-                    <span class="section-subtitle">The Founder</span>
-                    <h2>Meet Tinsae</h2>
-                    <blockquote>"I believe that traditional Ethiopian fashion is not just clothing - it's a celebration of our identity, our history, and our people's artistry. Through ባህላዊ ለምንግር, I want to make authentic Ethiopian fashion accessible to everyone while supporting our talented artisans."</blockquote>
-                    <p>Tinsae trained as a fashion designer in Addis Ababa before starting this venture to bridge the gap between traditional craftsmanship and modern fashion needs.</p>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: center;">
+                <div>
+                    <span style="display: inline-block; background: var(--primary); color: #fff; padding: 6px 16px; border-radius: 50px; font-size: 12px; font-weight: 600; margin-bottom: 16px;">THE FOUNDER</span>
+                    <h2 style="font-size: 36px; margin-bottom: 20px;">Meet Tinsae</h2>
+                    <blockquote style="font-size: 18px; line-height: 1.8; color: var(--text); padding-left: 24px; border-left: 4px solid var(--primary); font-style: italic; margin-bottom: 24px;">
+                        "I believe that traditional Ethiopian fashion is not just clothing - it's a celebration of our identity, our history, and our people's artistry."
+                    </blockquote>
+                    <p style="color: var(--text-light); line-height: 1.8;">
+                        Tinsae trained as a fashion designer in Addis Ababa before starting this venture to bridge the gap between traditional craftsmanship and modern fashion needs.
+                    </p>
+                </div>
+                <div>
+                    <img src="https://images.pexels.com/photos/1573496359142-b8d87734a5a2?auto=compress&cs=tinysrgb&w=600" alt="Founder" style="width: 100%; border-radius: var(--radius); box-shadow: var(--shadow-lg);">
                 </div>
             </div>
         </div>
     </section>
 
-    <footer>
+    <section class="newsletter">
         <div class="container">
-            <div class="footer-content">
-                <div class="footer-section">
-                    <a href="index.html" class="footer-logo">HABESHA TRADITIONAL CLOTHE</a>
+            <h2>Join Our Journey</h2>
+            <p>Subscribe to receive updates on new arrivals and cultural insights</p>
+            <form class="newsletter-form" onsubmit="handleSubscribe(event)">
+                <input type="email" placeholder="Enter your email address" required>
+                <button type="submit">Subscribe</button>
+            </form>
+        </div>
+    </section>
+
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-brand">
+                    <a href="index.html" class="logo">
+                        <div class="logo-icon">ባህል</div>
+                        <div class="logo-text">
+                            HABESHA
+                            <span>TRADITIONAL CLOTHE</span>
+                        </div>
+                    </a>
                     <p>Preserving Ethiopian heritage through authentic traditional fashion.</p>
+                    <div class="footer-social">
+                        <a href="#">📘</a>
+                        <a href="#">📸</a>
+                        <a href="#">🐦</a>
+                    </div>
                 </div>
-                <div class="footer-section">
+                <div class="footer-col">
                     <h4>Quick Links</h4>
                     <ul>
                         <li><a href="index.html">Home</a></li>
                         <li><a href="shop.html">Shop</a></li>
-                        <li><a href="about.html">About</a></li>
+                        <li><a href="about.html">About Us</a></li>
                         <li><a href="contact.html">Contact</a></li>
                     </ul>
                 </div>
-                <div class="footer-section">
-                    <h4>Visit Us</h4>
-                    <p>Bole Road, near Edna Mall<br>Addis Ababa, Ethiopia</p>
+                <div class="footer-col">
+                    <h4>Shop</h4>
+                    <ul>
+                        <li><a href="shop.html">Habesha Kemis</a></li>
+                        <li><a href="shop.html">Men's Traditional</a></li>
+                        <li><a href="shop.html">Traditional Shoes</a></li>
+                        <li><a href="shop.html">Accessories</a></li>
+                    </ul>
                 </div>
-                <div class="footer-section">
-                    <h4>Connect</h4>
-                    <p>Phone: +251 91 234 5678<br>WhatsApp: +251 91 234 5678<br>Email: info@habeshatraditional.com</p>
+                <div class="footer-col">
+                    <h4>Contact Us</h4>
+                    <ul>
+                        <li><p>Bole Road, near Edna Mall</p></li>
+                        <li><p>Addis Ababa, Ethiopia</p></li>
+                        <li><p>+251 91 234 5678</p></li>
+                    </ul>
                 </div>
             </div>
             <div class="footer-bottom">
-                <p>2026 HABESHA TRADITIONAL CLOTHE. All rights reserved.</p>
+                <p>© 2026 HABESHA TRADITIONAL CLOTHE. All rights reserved.</p>
             </div>
         </div>
     </footer>
 
     <div class="notification" id="notification"></div>
 
-    <!-- Login/Register Modal -->
-    <div class="auth-modal" id="authModal">
-        <div class="auth-modal-content">
-            <span class="close-auth" onclick="closeAuthModal()">&#10005;</span>
+    <div class="modal-overlay auth-modal" id="authModal">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeAuthModal()">✕</button>
             <div class="auth-header">
-                <h2 id="authTitle">Login</h2>
-                <p id="authSubtitle">Welcome back! Please login to continue.</p>
+                <h2 id="authTitle">Welcome Back</h2>
+                <p id="authSubtitle">Sign in to your account</p>
             </div>
             <form id="loginForm" onsubmit="handleLogin(event)">
-                <div class="auth-form">
-                    <div class="form-group">
-                        <label>Email Address</label>
-                        <input type="email" placeholder="Enter your email" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Password</label>
-                        <input type="password" placeholder="Enter your password" required>
-                    </div>
-                    <button type="submit" class="auth-btn">Login</button>
-                    <p class="auth-switch">Don't have an account? <a href="#" onclick="switchAuth('register')">Create Account</a></p>
+                <div class="form-group">
+                    <label>Email or Phone</label>
+                    <input type="text" placeholder="Enter your email or phone" required>
                 </div>
+                <div class="form-group">
+                    <label>Password <span style="color: var(--primary); font-size: 11px;">(min 8 characters)</span></label>
+                    <input type="password" placeholder="Enter your password" minlength="8" required>
+                </div>
+                <button type="submit" class="auth-btn">Sign In</button>
+                <p class="auth-switch">
+                    Don't have an account? <a href="#" onclick="switchAuth('register')">Create one</a>
+                </p>
             </form>
             <form id="registerForm" style="display: none;" onsubmit="handleRegister(event)">
-                <div class="auth-form">
-                    <div class="form-group">
-                        <label>Full Name</label>
-                        <input type="text" placeholder="Enter your name" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Email Address</label>
-                        <input type="email" placeholder="Enter your email" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Phone Number</label>
-                        <input type="tel" placeholder="+251..." required>
-                    </div>
-                    <div class="form-group">
-                        <label>Password</label>
-                        <input type="password" placeholder="Create a password" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Confirm Password</label>
-                        <input type="password" placeholder="Confirm your password" required>
-                    </div>
-                    <button type="submit" class="auth-btn">Create Account</button>
-                    <p class="auth-switch">Already have an account? <a href="#" onclick="switchAuth('login')">Login</a></p>
+                <div class="form-group">
+                    <label>Full Name</label>
+                    <input type="text" placeholder="Enter your name" required>
                 </div>
+                <div class="form-group">
+                    <label>Email Address</label>
+                    <input type="email" placeholder="Enter your email" required>
+                </div>
+                <div class="form-group">
+                    <label>Phone Number</label>
+                    <input type="tel" placeholder="+251..." required>
+                </div>
+                <div class="form-group">
+                    <label>Password <span style="color: var(--primary); font-size: 11px;">(min 8 characters)</span></label>
+                    <input type="password" placeholder="At least 8 characters" minlength="8" required>
+                </div>
+                <button type="submit" class="auth-btn">Create Account</button>
+                <p class="auth-switch">
+                    Already have an account? <a href="#" onclick="switchAuth('login')">Sign in</a>
+                </p>
             </form>
-            <div class="auth-divider"><span>or continue with</span></div>
-            <div class="social-auth">
-                <button class="social-btn google-btn" onclick="googleSignIn()">
-                    <svg class="google-icon" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
-                    <span>Sign in with Google</span>
-                </button>
-                <button class="social-btn facebook-btn" onclick="facebookSignIn()">
-                    <svg class="facebook-icon" viewBox="0 0 24 24"><path fill="#1877F2" d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
-                    <span>Sign in with Facebook</span>
-                </button>
-            </div>
         </div>
     </div>
 
-    <!-- Logged In User Menu -->
-    <div class="user-menu" id="userMenu">
-        <div class="user-menu-header">
-            <div class="user-avatar-lg" id="userAvatar">J</div>
-            <div class="user-info">
-                <h4 id="userName">John Doe</h4>
-                <p id="userEmail">john@email.com</p>
+    <div class="modal-overlay payment-modal" id="paymentModal">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closePaymentModal()">✕</button>
+            <div class="auth-header">
+                <h2>Select Payment Method</h2>
+                <p>Choose how you'd like to pay</p>
             </div>
-        </div>
-        <div class="user-menu-items">
-            <a href="#" onclick="openProfileModal()"><span>&#128100;</span> My Account</a>
-            <a href="#" onclick="openProfileModal(); showProfileTab('orders');"><span>&#128722;</span> My Orders</a>
-            <a href="#"><span>&#10084;</span> Wishlist</a>
-            <a href="#"><span>&#9881;</span> Settings</a>
-        </div>
-        <button class="logout-btn" onclick="logout()">Logout</button>
-    </div>
-
-    <!-- Profile Modal -->
-    <div class="profile-modal" id="profileModal">
-        <div class="profile-modal-content">
-            <span class="close-profile" onclick="closeProfileModal()">&#10005;</span>
-            <div class="profile-header">
-                <div class="profile-avatar" id="profileAvatar">J</div>
-                <h2 id="profileName">User Name</h2>
-                <p id="profileEmail">user@email.com</p>
-            </div>
-            
-            <div class="profile-tabs">
-                <button class="profile-tab active" onclick="showProfileTab('edit')">Edit Profile</button>
-                <button class="profile-tab" onclick="showProfileTab('orders')">My Orders</button>
-                <button class="profile-tab" onclick="showProfileTab('settings')">Settings</button>
-            </div>
-            
-            <div class="profile-content" id="editProfileTab">
-                <form onsubmit="updateProfile(event)">
-                    <div class="form-group">
-                        <label>Full Name</label>
-                        <input type="text" id="editName" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Email Address</label>
-                        <input type="email" id="editEmail" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Phone Number</label>
-                        <input type="tel" id="editPhone" placeholder="+251...">
-                    </div>
-                    <div class="form-group">
-                        <label>Delivery Address</label>
-                        <textarea id="editAddress" rows="3" placeholder="Enter your full address"></textarea>
-                    </div>
-                    <button type="submit" class="profile-save-btn">Save Changes</button>
-                </form>
-            </div>
-            
-            <div class="profile-content" id="ordersProfileTab" style="display:none;">
-                <div id="orderHistory">
-                    <p class="no-orders">No orders yet</p>
-                </div>
-            </div>
-            
-            <div class="profile-content" id="settingsProfileTab" style="display:none;">
-                <form onsubmit="changePassword(event)">
-                    <h4>Change Password</h4>
-                    <div class="form-group">
-                        <label>Current Password</label>
-                        <input type="password" id="currentPassword" required>
-                    </div>
-                    <div class="form-group">
-                        <label>New Password</label>
-                        <input type="password" id="newPassword" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Confirm New Password</label>
-                        <input type="password" id="confirmNewPassword" required>
-                    </div>
-                    <button type="submit" class="profile-save-btn">Update Password</button>
-                </form>
-            </div>
-        </div>
-    </div>
-
-    <!-- Payment Modal -->
-    <div class="payment-modal" id="paymentModal">
-        <div class="payment-modal-content">
-            <span class="close-payment" onclick="closePaymentModal()">&#10005;</span>
-            <h2>Select Payment Method</h2>
-            <p class="payment-subtitle">Choose how you'd like to pay</p>
-            
             <div class="payment-methods">
                 <div class="payment-method" onclick="selectPayment('telebirr')">
-                    <div class="payment-icon telebirr-icon">T</div>
-                    <div class="payment-info">
-                        <h4>Telebirr</h4>
-                        <p>Pay with Telebirr mobile money</p>
-                    </div>
-                    <span class="payment-check">&#10003;</span>
+                    <div class="payment-icon telebirr">T</div>
+                    <div class="payment-info"><h4>Telebirr</h4><p>Pay with Telebirr mobile money</p></div>
+                    <span class="payment-check">✓</span>
                 </div>
-                
                 <div class="payment-method" onclick="selectPayment('cbe')">
-                    <div class="payment-icon cbe-icon">C</div>
-                    <div class="payment-info">
-                        <h4>Commercial Bank of Ethiopia</h4>
-                        <p>Direct bank transfer</p>
-                    </div>
-                    <span class="payment-check">&#10003;</span>
+                    <div class="payment-icon cbe">C</div>
+                    <div class="payment-info"><h4>Commercial Bank</h4><p>Direct bank transfer</p></div>
+                    <span class="payment-check">✓</span>
                 </div>
-                
-                <div class="payment-method" onclick="selectPayment('awash')">
-                    <div class="payment-icon awash-icon">A</div>
-                    <div class="payment-info">
-                        <h4>Awash Bank</h4>
-                        <p>Transfer to Awash Bank</p>
-                    </div>
-                    <span class="payment-check">&#10003;</span>
-                </div>
-                
                 <div class="payment-method" onclick="selectPayment('cod')">
-                    <div class="payment-icon cod-icon">$</div>
-                    <div class="payment-info">
-                        <h4>Cash on Delivery</h4>
-                        <p>Pay when you receive</p>
-                    </div>
-                    <span class="payment-check">&#10003;</span>
+                    <div class="payment-icon cod">$</div>
+                    <div class="payment-info"><h4>Cash on Delivery</h4><p>Pay when you receive</p></div>
+                    <span class="payment-check">✓</span>
                 </div>
             </div>
-            
             <div class="payment-details" id="paymentDetails" style="display:none;">
                 <h3 id="paymentTitle"></h3>
                 <div id="paymentInfo"></div>
@@ -368,7 +343,6 @@
                     <button type="submit" class="payment-btn">Confirm Order</button>
                 </form>
             </div>
-            
             <div class="cod-confirm" id="codConfirm" style="display:none;">
                 <p>You will pay <strong id="codTotal">ETB 0</strong> when your order arrives.</p>
                 <button onclick="processCODOrder()" class="payment-btn">Confirm Order</button>
