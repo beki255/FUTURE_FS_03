@@ -107,18 +107,19 @@
                 <span>Subtotal:</span>
                 <span id="cartTotal">ETB 0</span>
             </div>
+            <p style="font-size: 11px; color: var(--text-light); margin-bottom: 12px;">Delivery fees vary by city (Addis Ababa: Free)</p>
             <button onclick="openPaymentModal()">Proceed to Checkout</button>
         </div>
     </div>
 
-    <section class="hero">
+    <section class="hero" style="background: linear-gradient(135deg, rgba(30, 64, 175, 0.4), rgba(30, 64, 175, 0.6)), url('https://images.pexels.com/photos/3617500/pexels-photo-3617500.jpeg?auto=compress&cs=tinysrgb&w=1920') center/cover no-repeat fixed;">
         <div class="container">
             <div class="hero-content">
                 <div class="hero-badge">
-                    <span>✨</span> New Collection 2026
+                    <span>✨</span> አዲስ ስብስብ 2026
                 </div>
                 <h1>Authentic Ethiopian<br>Traditional Fashion</h1>
-                <p>Discover handcrafted Habesha Kemis, traditional shoes, and accessories that celebrate Ethiopian heritage and craftsmanship.</p>
+                <p>Celebrate the rich heritage of Ethiopia with handcrafted Habesha Kemis, traditional Tilfis shoes, and elegant accessories made with love.</p>
                 <div class="hero-btns">
                     <a href="shop.html" class="btn btn-primary">
                         <span>Shop Collection</span>
@@ -567,60 +568,127 @@
 
     <!-- Payment Modal -->
     <div class="modal-overlay payment-modal" id="paymentModal">
-        <div class="modal-content">
+        <div class="modal-content" style="max-width: 500px;">
             <button class="modal-close" onclick="closePaymentModal()">✕</button>
             <div class="auth-header">
-                <h2>Select Payment Method</h2>
-                <p>Choose how you'd like to pay</p>
+                <h2>Checkout</h2>
+                <p>Delivery & Payment</p>
             </div>
-            <div class="payment-methods">
-                <div class="payment-method" onclick="selectPayment('telebirr')">
-                    <div class="payment-icon telebirr">T</div>
-                    <div class="payment-info">
-                        <h4>Telebirr</h4>
-                        <p>Pay with Telebirr mobile money</p>
-                    </div>
-                    <span class="payment-check">✓</span>
-                </div>
-                <div class="payment-method" onclick="selectPayment('cbe')">
-                    <div class="payment-icon cbe">C</div>
-                    <div class="payment-info">
-                        <h4>Commercial Bank</h4>
-                        <p>Direct bank transfer</p>
-                    </div>
-                    <span class="payment-check">✓</span>
-                </div>
-                <div class="payment-method" onclick="selectPayment('awash')">
-                    <div class="payment-icon awash">A</div>
-                    <div class="payment-info">
-                        <h4>Awash Bank</h4>
-                        <p>Transfer to Awash Bank</p>
-                    </div>
-                    <span class="payment-check">✓</span>
-                </div>
-                <div class="payment-method" onclick="selectPayment('cod')">
-                    <div class="payment-icon cod">$</div>
-                    <div class="payment-info">
-                        <h4>Cash on Delivery</h4>
-                        <p>Pay when you receive</p>
-                    </div>
-                    <span class="payment-check">✓</span>
-                </div>
-            </div>
-            <div class="payment-details" id="paymentDetails" style="display:none;">
-                <h3 id="paymentTitle"></h3>
-                <div id="paymentInfo"></div>
-                <form id="paymentForm" onsubmit="processPayment(event)">
+            
+            <!-- Step 1: Delivery Address -->
+            <div class="checkout-step" id="deliveryStep">
+                <h3 style="margin-bottom: 16px; font-size: 16px;">📍 Delivery Address</h3>
+                <form id="deliveryForm">
                     <div class="form-group">
-                        <label>Transaction/Reference Number</label>
-                        <input type="text" id="paymentRef" placeholder="Enter your payment reference" required>
+                        <label>Full Name *</label>
+                        <input type="text" id="deliveryName" required>
                     </div>
-                    <button type="submit" class="payment-btn">Confirm Order</button>
+                    <div class="form-group">
+                        <label>Phone Number *</label>
+                        <input type="tel" id="deliveryPhone" placeholder="+251..." required>
+                    </div>
+                    <div class="form-group">
+                        <label>City *</label>
+                        <select id="deliveryCity" required onchange="updateDeliveryFee()">
+                            <option value="">Select City</option>
+                            <option value="addis-ababa">Addis Ababa</option>
+                            <option value="dire-dawa">Dire Dawa</option>
+                            <option value="bahir-dar">Bahir Dar</option>
+                            <option value="gondar">Gondar</option>
+                            <option value="mekelle">Mekelle</option>
+                            <option value="hawassa">Hawassa</option>
+                            <option value=" Jiménez ">Jimma</option>
+                            <option value="harar">Harar</option>
+                            <option value="other">Other City</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Sub-City / Woreda *</label>
+                        <input type="text" id="deliverySubCity" placeholder="e.g., Bole, Lideta" required>
+                    </div>
+                    <div class="form-group">
+                        <label>House Number / Landmark</label>
+                        <input type="text" id="deliveryHouse" placeholder="e.g., Near Bole Medhanialem">
+                    </div>
+                    <div class="form-group">
+                        <label>Delivery Instructions</label>
+                        <textarea id="deliveryInstructions" rows="2" placeholder="Any special instructions for delivery..."></textarea>
+                    </div>
+                    <div class="delivery-fee-box" id="deliveryFeeBox" style="background: var(--background); padding: 12px; border-radius: 8px; margin-bottom: 16px;">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                            <span>Delivery Fee:</span>
+                            <span id="deliveryFeeAmount">ETB 0</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; font-weight: bold;">
+                            <span>Total:</span>
+                            <span id="deliveryTotal">ETB 0</span>
+                        </div>
+                    </div>
+                    <button type="button" onclick="goToPaymentStep()" class="payment-btn" style="width: 100%;">Continue to Payment →</button>
                 </form>
             </div>
-            <div class="cod-confirm" id="codConfirm" style="display:none;">
-                <p>You will pay <strong id="codTotal">ETB 0</strong> when your order arrives.</p>
-                <button onclick="processCODOrder()" class="payment-btn">Confirm Order</button>
+            
+            <!-- Step 2: Payment Methods -->
+            <div class="checkout-step" id="paymentStep" style="display: none;">
+                <button onclick="backToDeliveryStep()" style="background: none; border: none; color: var(--primary); cursor: pointer; margin-bottom: 16px; font-size: 14px;">← Back to Delivery</button>
+                <h3 style="margin-bottom: 16px; font-size: 16px;">💳 Payment Method</h3>
+                <div class="payment-methods">
+                    <div class="payment-method" onclick="selectPayment('telebirr')">
+                        <div class="payment-icon telebirr">T</div>
+                        <div class="payment-info">
+                            <h4>Telebirr</h4>
+                            <p>Pay with Telebirr mobile money</p>
+                        </div>
+                        <span class="payment-check">✓</span>
+                    </div>
+                    <div class="payment-method" onclick="selectPayment('cbe')">
+                        <div class="payment-icon cbe">C</div>
+                        <div class="payment-info">
+                            <h4>Commercial Bank</h4>
+                            <p>Direct bank transfer</p>
+                        </div>
+                        <span class="payment-check">✓</span>
+                    </div>
+                    <div class="payment-method" onclick="selectPayment('awash')">
+                        <div class="payment-icon awash">A</div>
+                        <div class="payment-info">
+                            <h4>Awash Bank</h4>
+                            <p>Transfer to Awash Bank</p>
+                        </div>
+                        <span class="payment-check">✓</span>
+                    </div>
+                    <div class="payment-method" onclick="selectPayment('cod')">
+                        <div class="payment-icon cod">$</div>
+                        <div class="payment-info">
+                            <h4>Cash on Delivery</h4>
+                            <p>Pay when you receive</p>
+                        </div>
+                        <span class="payment-check">✓</span>
+                    </div>
+                </div>
+                <div class="payment-details" id="paymentDetails" style="display:none;">
+                    <h3 id="paymentTitle"></h3>
+                    <div id="paymentInfo"></div>
+                    <form id="paymentForm" onsubmit="processPayment(event)">
+                        <div class="form-group">
+                            <label>Transaction/Reference Number</label>
+                            <input type="text" id="paymentRef" placeholder="Enter your payment reference" required>
+                        </div>
+                        <button type="submit" class="payment-btn">Confirm Order</button>
+                    </form>
+                </div>
+                <div class="cod-confirm" id="codConfirm" style="display:none;">
+                    <p>You will pay <strong id="codTotal">ETB 0</strong> when your order arrives.</p>
+                    <button onclick="processCODOrder()" class="payment-btn">Confirm Order</button>
+                </div>
+            </div>
+            
+            <!-- Delivery Summary (shown in payment step) -->
+            <div id="deliverySummary" style="display: none; background: var(--background); padding: 12px; border-radius: 8px; margin-bottom: 16px; font-size: 13px;">
+                <p style="margin: 0;"><strong>Delivery to:</strong></p>
+                <p id="summaryName" style="margin: 4px 0;"></p>
+                <p id="summaryPhone" style="margin: 0; color: var(--text-light);"></p>
+                <p id="summaryAddress" style="margin: 4px 0; color: var(--text-light);"></p>
             </div>
         </div>
     </div>
@@ -630,7 +698,7 @@
         <div class="modal-content" style="max-width: 700px;">
             <button class="modal-close" onclick="closeWishlistModal()">✕</button>
             <div class="auth-header">
-                <h2>❤️ ${t('wishlist')}</h2>
+                <h2>❤️ Wishlist</h2>
                 <p>Your saved items</p>
             </div>
             <div class="wishlist-items" id="wishlistItems" style="max-height: 500px; overflow-y: auto;">

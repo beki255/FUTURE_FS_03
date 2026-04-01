@@ -619,6 +619,23 @@ function openPaymentModal() {
     }
     
     selectedPayment = null;
+    
+    // Pre-fill with user data if available
+    if (currentUser) {
+        document.getElementById('deliveryName').value = currentUser.name || '';
+        document.getElementById('deliveryPhone').value = currentUser.phone || '';
+        document.getElementById('deliverySubCity').value = currentUser.subCity || '';
+        document.getElementById('deliveryHouse').value = currentUser.house || '';
+    }
+    
+    // Reset to delivery step
+    document.getElementById('deliveryStep').style.display = 'block';
+    document.getElementById('paymentStep').style.display = 'none';
+    document.getElementById('deliverySummary').style.display = 'none';
+    
+    // Update totals
+    updateDeliveryFee();
+    
     document.querySelectorAll('.payment-method').forEach(el => el.classList.remove('selected'));
     document.getElementById('paymentDetails').style.display = 'none';
     document.getElementById('codConfirm').style.display = 'none';
@@ -629,6 +646,96 @@ function openPaymentModal() {
 function closePaymentModal() {
     document.getElementById('paymentModal').classList.remove('active');
     document.body.style.overflow = '';
+}
+
+const deliveryFees = {
+    'addis-ababa': 0,
+    'dire-dawa': 150,
+    'bahir-dar': 200,
+    'gondar': 250,
+    'mekelle': 300,
+    'hawassa': 200,
+    'jimma': 250,
+    'harar': 300,
+    'other': 400
+};
+
+function updateDeliveryFee() {
+    const city = document.getElementById('deliveryCity').value;
+    const fee = deliveryFees[city] || 400;
+    const subtotal = getCartTotal();
+    const total = subtotal + fee;
+    
+    document.getElementById('deliveryFeeAmount').textContent = fee === 0 ? 'Free' : 'ETB ' + fee.toLocaleString();
+    document.getElementById('deliveryTotal').textContent = 'ETB ' + total.toLocaleString();
+}
+
+function getDeliveryFee() {
+    const city = document.getElementById('deliveryCity').value;
+    return deliveryFees[city] || 400;
+}
+
+function goToPaymentStep() {
+    const form = document.getElementById('deliveryForm');
+    if (!form.checkValidity()) {
+        form.reportValidity();
+        return;
+    }
+    
+    const name = document.getElementById('deliveryName').value;
+    const phone = document.getElementById('deliveryPhone').value;
+    const city = document.getElementById('deliveryCity').value;
+    const subCity = document.getElementById('deliverySubCity').value;
+    const house = document.getElementById('deliveryHouse').value;
+    const instructions = document.getElementById('deliveryInstructions').value;
+    
+    // Save to user profile
+    if (currentUser) {
+        currentUser.phone = phone;
+        currentUser.subCity = subCity;
+        currentUser.house = house;
+        localStorage.setItem('user', JSON.stringify(currentUser));
+        
+        const users = JSON.parse(localStorage.getItem('users') || '[]');
+        const userIndex = users.findIndex(u => u.email === currentUser.email);
+        if (userIndex > -1) {
+            users[userIndex].phone = phone;
+            users[userIndex].subCity = subCity;
+            users[userIndex].house = house;
+            localStorage.setItem('users', JSON.stringify(users));
+        }
+    }
+    
+    // Show delivery summary
+    document.getElementById('summaryName').textContent = name;
+    document.getElementById('summaryPhone').textContent = phone;
+    document.getElementById('summaryAddress').textContent = (house ? house + ', ' : '') + subCity + ', ' + city.charAt(0).toUpperCase() + city.slice(1);
+    
+    // Update COD total
+    const fee = getDeliveryFee();
+    document.getElementById('codTotal').textContent = 'ETB ' + (getCartTotal() + fee).toLocaleString();
+    
+    // Switch to payment step
+    document.getElementById('deliveryStep').style.display = 'none';
+    document.getElementById('paymentStep').style.display = 'block';
+    document.getElementById('deliverySummary').style.display = 'block';
+}
+
+function backToDeliveryStep() {
+    document.getElementById('paymentStep').style.display = 'none';
+    document.getElementById('deliveryStep').style.display = 'block';
+}
+
+function getDeliveryAddress() {
+    return {
+        name: document.getElementById('deliveryName').value,
+        phone: document.getElementById('deliveryPhone').value,
+        city: document.getElementById('deliveryCity').value,
+        subCity: document.getElementById('deliverySubCity').value,
+        house: document.getElementById('deliveryHouse').value,
+        instructions: document.getElementById('deliveryInstructions').value,
+        fee: getDeliveryFee()
+    };
 }
 
 function selectPayment(method) {
@@ -689,15 +796,20 @@ function processCODOrder() {
 }
 
 function createOrder(paymentMethod, ref) {
+    const delivery = getDeliveryAddress();
+    const orderTotal = getCartTotal() + delivery.fee;
+    
     const order = {
         id: 'ORD-' + Date.now(),
         items: [...cart],
-        total: getCartTotal(),
+        subtotal: getCartTotal(),
+        deliveryFee: delivery.fee,
+        total: orderTotal,
         paymentMethod: paymentMethod,
         paymentRef: ref,
-        status: paymentMethod === 'cod' ? 'processing' : 'delivered',
+        status: 'processing',
         date: new Date().toISOString(),
-        address: currentUser?.address || 'Not provided'
+        delivery: delivery
     };
     
     const orders = JSON.parse(localStorage.getItem('orders') || '[]');
@@ -712,14 +824,7 @@ function createOrder(paymentMethod, ref) {
     updateCartUI();
     updateHeaderCartCount();
     
-    const paymentNames = {
-        telebirr: 'Telebirr',
-        cbe: 'CBE Bank Transfer',
-        awash: 'Awash Bank Transfer',
-        cod: 'Cash on Delivery'
-    };
-    
-    showNotification('Order placed successfully!');
+    showNotification('Order placed successfully! We will deliver to ' + delivery.city);
 }
 
 function filterProducts() {
