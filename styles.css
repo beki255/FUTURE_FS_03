@@ -67,7 +67,6 @@ img { max-width: 100%; height: auto; display: block; }
     color: #fff;
     padding: 10px 0;
     font-size: 13px;
-    border-radius: 0 0 20px 20px;
 }
 .top-bar-content {
     display: flex;
@@ -84,7 +83,6 @@ img { max-width: 100%; height: auto; display: block; }
     right: 0;
     z-index: 1000;
     box-shadow: var(--shadow);
-    border-radius: 0 0 24px 24px;
 }
 
 .header-inner {
@@ -104,7 +102,7 @@ img { max-width: 100%; height: auto; display: block; }
     width: 48px;
     height: 48px;
     background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-    border-radius: 14px;
+    border-radius: 12px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -135,7 +133,7 @@ img { max-width: 100%; height: auto; display: block; }
     display: flex;
     background: var(--background);
     border: 2px solid var(--border);
-    border-radius: 60px;
+    border-radius: 50px;
     overflow: hidden;
     transition: all 0.3s;
 }
@@ -292,15 +290,15 @@ img { max-width: 100%; height: auto; display: block; }
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    background: rgba(255,255,255,0.2);
+    background: rgba(255,255,255,0.15);
     backdrop-filter: blur(10px);
-    padding: 12px 24px;
-    border-radius: 60px;
+    padding: 10px 20px;
+    border-radius: 50px;
     color: #fff;
-    font-size: 14px;
+    font-size: 13px;
     font-weight: 600;
     margin-bottom: 24px;
-    border: 1px solid rgba(255,255,255,0.3);
+    border: 1px solid rgba(255,255,255,0.2);
 }
 .hero h1 {
     font-size: 56px;
@@ -379,7 +377,7 @@ img { max-width: 100%; height: auto; display: block; }
 }
 .category-card {
     background: var(--card-bg);
-    border-radius: 24px;
+    border-radius: var(--radius);
     padding: 28px 20px;
     text-align: center;
     box-shadow: var(--shadow);
@@ -396,7 +394,7 @@ img { max-width: 100%; height: auto; display: block; }
     width: 72px;
     height: 72px;
     background: linear-gradient(135deg, var(--primary-light), var(--primary));
-    border-radius: 22px;
+    border-radius: 20px;
     margin: 0 auto 16px;
     display: flex;
     align-items: center;
@@ -424,7 +422,7 @@ img { max-width: 100%; height: auto; display: block; }
 }
 .product-card {
     background: var(--card-bg);
-    border-radius: 24px;
+    border-radius: var(--radius);
     overflow: hidden;
     box-shadow: var(--shadow);
     transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
@@ -454,8 +452,8 @@ img { max-width: 100%; height: auto; display: block; }
     position: absolute;
     top: 16px;
     left: 16px;
-    padding: 8px 16px;
-    border-radius: 30px;
+    padding: 6px 14px;
+    border-radius: 50px;
     font-size: 11px;
     font-weight: 700;
     text-transform: uppercase;
@@ -583,7 +581,7 @@ img { max-width: 100%; height: auto; display: block; }
 }
 .deal-card {
     background: var(--white);
-    border-radius: 24px;
+    border-radius: var(--radius);
     padding: 20px;
     text-align: center;
     box-shadow: var(--shadow);
@@ -597,8 +595,8 @@ img { max-width: 100%; height: auto; display: block; }
     display: inline-block;
     background: var(--error);
     color: #fff;
-    padding: 6px 16px;
-    border-radius: 30px;
+    padding: 4px 12px;
+    border-radius: 50px;
     font-size: 12px;
     font-weight: 700;
     margin-bottom: 12px;
@@ -637,7 +635,7 @@ img { max-width: 100%; height: auto; display: block; }
     text-align: center;
     padding: 32px 24px;
     background: var(--background);
-    border-radius: 24px;
+    border-radius: var(--radius);
     transition: all 0.3s;
 }
 .feature-card:hover {
@@ -648,7 +646,7 @@ img { max-width: 100%; height: auto; display: block; }
     width: 72px;
     height: 72px;
     background: linear-gradient(135deg, var(--primary-light), var(--primary));
-    border-radius: 22px;
+    border-radius: 20px;
     margin: 0 auto 20px;
     display: flex;
     align-items: center;
@@ -677,7 +675,7 @@ img { max-width: 100%; height: auto; display: block; }
 .testimonial-card {
     background: var(--card-bg);
     padding: 32px;
-    border-radius: 24px;
+    border-radius: var(--radius);
     box-shadow: var(--shadow);
 }
 .testimonial-stars {
@@ -700,7 +698,7 @@ img { max-width: 100%; height: auto; display: block; }
     width: 48px;
     height: 48px;
     background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-    border-radius: 14px;
+    border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -722,7 +720,6 @@ img { max-width: 100%; height: auto; display: block; }
     padding: 80px 0;
     background: linear-gradient(135deg, var(--secondary) 0%, var(--primary-dark) 100%);
     text-align: center;
-    border-radius: 60px 60px 0 0;
 }
 .newsletter h2 {
     font-size: 36px;
@@ -745,11 +742,10 @@ img { max-width: 100%; height: auto; display: block; }
     flex: 1;
     padding: 16px 24px;
     border: none;
-    border-radius: 30px;
+    border-radius: 50px;
     font-size: 15px;
-    background: rgba(255,255,255,0.15);
+    background: rgba(255,255,255,0.1);
     color: #fff;
-    backdrop-filter: blur(10px);
 }
 .newsletter-form input::placeholder { color: rgba(255,255,255,0.6); }
 .newsletter-form button {
@@ -757,7 +753,7 @@ img { max-width: 100%; height: auto; display: block; }
     background: var(--accent);
     color: #fff;
     border: none;
-    border-radius: 30px;
+    border-radius: 50px;
     font-size: 15px;
     font-weight: 600;
     cursor: pointer;
@@ -773,8 +769,6 @@ img { max-width: 100%; height: auto; display: block; }
     background: var(--secondary);
     color: #fff;
     padding: 60px 0 24px;
-    border-radius: 60px 60px 0 0;
-    margin-top: -60px;
 }
 .footer-grid {
     display: grid;
@@ -794,14 +788,14 @@ img { max-width: 100%; height: auto; display: block; }
     gap: 12px;
 }
 .footer-social a {
-    width: 44px;
-    height: 44px;
+    width: 40px;
+    height: 40px;
     background: rgba(255,255,255,0.1);
-    border-radius: 14px;
+    border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 18px;
+    font-size: 16px;
     transition: all 0.3s;
 }
 .footer-social a:hover {
@@ -848,7 +842,6 @@ img { max-width: 100%; height: auto; display: block; }
     display: flex;
     flex-direction: column;
     box-shadow: -10px 0 40px rgba(0,0,0,0.15);
-    border-radius: 28px 0 0 28px;
 }
 .cart-sidebar.active { transform: translateX(0); }
 .cart-header {
@@ -890,7 +883,7 @@ img { max-width: 100%; height: auto; display: block; }
     width: 80px;
     height: 80px;
     object-fit: cover;
-    border-radius: 16px;
+    border-radius: var(--radius-sm);
     background: var(--background);
 }
 .cart-item-info { flex: 1; }
@@ -1003,7 +996,7 @@ img { max-width: 100%; height: auto; display: block; }
 .modal-content {
     background: var(--card-bg);
     padding: 32px;
-    border-radius: 28px;
+    border-radius: var(--radius);
     max-width: 400px;
     width: 100%;
     max-height: 90vh;
@@ -1048,7 +1041,7 @@ img { max-width: 100%; height: auto; display: block; }
     width: 100%;
     padding: 14px 18px;
     border: 2px solid var(--border);
-    border-radius: 16px;
+    border-radius: var(--radius-sm);
     font-size: 15px;
     background: var(--background);
     color: var(--text);
@@ -1140,7 +1133,7 @@ img { max-width: 100%; height: auto; display: block; }
     top: calc(100% + 8px);
     right: 0;
     background: var(--card-bg);
-    border-radius: 20px;
+    border-radius: var(--radius);
     box-shadow: var(--shadow-lg);
     min-width: 240px;
     z-index: 1500;
@@ -1165,7 +1158,7 @@ img { max-width: 100%; height: auto; display: block; }
     width: 48px;
     height: 48px;
     background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-    border-radius: 14px;
+    border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -1253,7 +1246,7 @@ img { max-width: 100%; height: auto; display: block; }
 .payment-icon {
     width: 48px;
     height: 48px;
-    border-radius: 14px;
+    border-radius: 12px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -1333,7 +1326,7 @@ img { max-width: 100%; height: auto; display: block; }
     width: 80px;
     height: 80px;
     background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-    border-radius: 22px;
+    border-radius: 50%;
     margin: 0 auto 12px;
     display: flex;
     align-items: center;
@@ -1390,8 +1383,8 @@ img { max-width: 100%; height: auto; display: block; }
 }
 .order-id { font-weight: 600; font-size: 14px; }
 .order-status {
-    padding: 6px 14px;
-    border-radius: 30px;
+    padding: 4px 12px;
+    border-radius: 50px;
     font-size: 11px;
     font-weight: 600;
     text-transform: uppercase;

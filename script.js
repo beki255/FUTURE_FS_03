@@ -375,10 +375,10 @@ function closeCart() {
 
 function getProducts() {
     return [
-        { id: 1, name: 'Handwoven Habesha Kemis - Traditional Ethiopian Dress', price: 8500, category: 'habesha', image: 'https://images.pexels.com/photos/2736832/pexels-photo-2736832.jpeg?auto=compress&cs=tinysrgb&w=400', rating: 5, reviews: 2847 },
-        { id: 2, name: 'Handwoven Leather Sandals - Artisan Crafted', price: 5500, category: 'shoes', image: 'https://images.pexels.com/photos/267202/pexels-photo-267202.jpeg?auto=compress&cs=tinysrgb&w=400', rating: 5, reviews: 1523 },
-        { id: 3, name: 'Festival Kemis - Hand-Dyed Cotton', price: 12000, category: 'habesha', image: 'https://images.pexels.com/photos/3617500/pexels-photo-3617500.jpeg?auto=compress&cs=tinysrgb&w=400', rating: 4, reviews: 856 },
-        { id: 4, name: "Men's Habesha Kemis - Classic White Cotton", price: 7500, category: 'mens', image: 'https://images.pexels.com/photos/1222271/pexels-photo-1222271.jpeg?auto=compress&cs=tinysrgb&w=400', rating: 4, reviews: 1234 }
+        { id: 1, name: 'Handwoven Habesha Kemis', price: 8500, category: 'habesha', image: 'images/Handwoven Habesha Kemis.jpg', rating: 5, reviews: 2847 },
+        { id: 2, name: 'Traditional Men\'s Sandal And Loafer2', price: 5500, category: 'shoes', image: '/images/Arif Tibeb Ethiopian Traditional Men\'s Sandal And Loafer2.jpg', rating: 5, reviews: 1523 },
+        { id: 3, name: 'Festival Habesha Kemis', price: 12000, category: 'habesha', image: 'images/Festival Habesha Kemis - Golden Thread Embroidery.jpg', rating: 4, reviews: 856 },
+        { id: 4, name: "Men's T-shirt", price: 7500, category: 'mens', image: '/images/Men Tishert.jpg', rating: 4, reviews: 1234 }
     ];
 }
 
