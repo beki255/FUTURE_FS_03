@@ -894,8 +894,18 @@ img { max-width: 100%; height: auto; display: block; }
 .cart-item-price {
     color: var(--primary);
     font-weight: 600;
+    margin-bottom: 4px;
+}
+.cart-item-delivery {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    color: var(--text-light);
     margin-bottom: 8px;
 }
+.cart-item-delivery .delivery-icon { font-size: 12px; }
+.cart-item-delivery .delivery-info { color: var(--success); font-weight: 500; }
 .cart-item-qty {
     display: flex;
     align-items: center;
@@ -929,6 +939,52 @@ img { max-width: 100%; height: auto; display: block; }
     padding: 24px;
     border-top: 1px solid var(--border);
 }
+.cart-delivery-select {
+    margin-bottom: 16px;
+}
+.cart-delivery-select label {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    margin-bottom: 6px;
+    color: var(--text);
+}
+.cart-delivery-select select {
+    width: 100%;
+    padding: 10px 12px;
+    border: 2px solid var(--border);
+    border-radius: var(--radius-sm);
+    font-size: 13px;
+    background: var(--background);
+    color: var(--text);
+    cursor: pointer;
+}
+.cart-delivery-select select:focus {
+    border-color: var(--primary);
+    outline: none;
+}
+.order-summary {
+    background: var(--background);
+    padding: 16px;
+    border-radius: var(--radius-sm);
+    margin-bottom: 12px;
+}
+.summary-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 13px;
+    margin-bottom: 8px;
+    color: var(--text-light);
+}
+.summary-row.total {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text);
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid var(--border);
+}
+.summary-row.total span:last-child { color: var(--primary); }
 .cart-total {
     display: flex;
     justify-content: space-between;
@@ -1381,6 +1437,17 @@ img { max-width: 100%; height: auto; display: block; }
     align-items: center;
     margin-bottom: 8px;
 }
+.order-header .order-id { font-weight: 600; color: var(--primary); }
+.order-delete-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 18px;
+    padding: 4px 8px;
+    border-radius: 4px;
+    transition: background 0.3s;
+}
+.order-delete-btn:hover { background: var(--error); }
 .order-id { font-weight: 600; font-size: 14px; }
 .order-status {
     padding: 4px 12px;

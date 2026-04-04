@@ -271,10 +271,47 @@
 
     <script src="script.js"></script>
     <script>
+        // Check if user is admin
+        const isAdmin = localStorage.getItem('isAdmin') === 'true';
+        
+        if (!isAdmin) {
+            // Check for default admin credentials
+            const users = JSON.parse(localStorage.getItem('users') || '[]');
+            const adminUser = users.find(u => u.email === 'admin@habesha.com' && u.password === 'admin123');
+            
+            if (!adminUser) {
+                // Create default admin account
+                users.push({
+                    name: 'Admin',
+                    email: 'admin@habesha.com',
+                    phone: '+251911000000',
+                    password: 'admin123',
+                    isAdmin: true,
+                    address: ''
+                });
+                localStorage.setItem('users', JSON.stringify(users));
+                localStorage.setItem('isAdmin', 'true');
+            } else {
+                localStorage.setItem('isAdmin', 'true');
+            }
+        }
+
         checkLoginStatus();
-        updateLanguageButton();
-        updatePageTranslations();
-        loadAdminData();
+        
+        // If not logged in as admin, show login
+        if (!localStorage.getItem('user')) {
+            document.body.innerHTML = '<div style="display:flex;justify-content:center;align-items:center;height:100vh;flex-direction:column;gap:20px;background:linear-gradient(135deg,#1e40af,#1e3a8a);color:#fff;"><h1>Admin Login Required</h1><p>Please login as admin to access this page.</p><a href="index.html" style="padding:15px 30px;background:#fff;color:#1e40af;border-radius:8px;text-decoration:none;font-weight:600;">Go to Login</a></div>';
+        } else {
+            const currentUser = JSON.parse(localStorage.getItem('user'));
+            const users = JSON.parse(localStorage.getItem('users') || '[]');
+            const userData = users.find(u => u.email === currentUser.email);
+            
+            if (!userData || !userData.isAdmin) {
+                document.body.innerHTML = '<div style="display:flex;justify-content:center;align-items:center;height:100vh;flex-direction:column;gap:20px;background:linear-gradient(135deg,#1e40af,#1e3a8a);color:#fff;"><h1>Access Denied</h1><p>You do not have admin access.</p><a href="index.html" style="padding:15px 30px;background:#fff;color:#1e40af;border-radius:8px;text-decoration:none;font-weight:600;">Go to Home</a></div>';
+            } else {
+                loadAdminData();
+            }
+        }
 
         function showAdminSection(section) {
             document.querySelectorAll('.admin-sidebar-item').forEach(item => {
@@ -339,17 +376,26 @@
             const orders = JSON.parse(localStorage.getItem('orders') || '[]');
             const tbody = document.getElementById('ordersBody');
 
+            const statusOptions = ['pending', 'processing', 'shipped', 'delivered', 'cancelled'];
+
             tbody.innerHTML = orders.reverse().map(order => `
                 <tr>
                     <td>#${order.id}</td>
-                    <td>${order.name}<br><small>${order.email}</small></td>
+                    <td>${order.delivery?.name || 'N/A'}<br><small>${order.delivery?.phone || ''}</small></td>
                     <td>${order.items.map(i => i.name + ' x' + i.qty).join(', ')}</td>
                     <td>ETB ${order.total.toLocaleString()}</td>
-                    <td>${order.payment}</td>
-                    <td><span class="status-badge ${order.status}">${order.status}</span></td>
+                    <td>${order.paymentMethod?.toUpperCase() || 'N/A'}</td>
+                    <td>
+                        <select onchange="updateOrderStatus('${order.id}', this.value)" 
+                                style="padding: 6px 10px; border-radius: 6px; border: 2px solid var(--border); 
+                                       background: ${order.status === 'delivered' ? 'var(--success)' : order.status === 'cancelled' ? 'var(--error)' : 'var(--background)'};
+                                       color: #fff; cursor: pointer;">
+                            ${statusOptions.map(s => `<option value="${s}" ${order.status === s ? 'selected' : ''}>${s.charAt(0).toUpperCase() + s.slice(1)}</option>`).join('')}
+                        </select>
+                    </td>
                     <td>${new Date(order.date).toLocaleDateString()}</td>
                     <td>
-                        <button onclick="viewOrder(${order.id})" style="background: var(--primary); color: #fff; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer;">View</button>
+                        <button onclick="viewOrder('${order.id}')" style="background: var(--primary); color: #fff; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer;">View</button>
                     </td>
                 </tr>
             `).join('') || '<tr><td colspan="8" style="text-align: center;">No orders yet</td></tr>';
@@ -443,6 +489,19 @@
             if (orderIndex > -1) {
                 orders[orderIndex].status = newStatus;
                 localStorage.setItem('orders', JSON.stringify(orders));
+                
+                // Also update in user-specific order storage
+                const userEmail = orders[orderIndex].userEmail;
+                if (userEmail) {
+                    const userOrdersKey = 'orders_' + userEmail;
+                    const userOrders = JSON.parse(localStorage.getItem(userOrdersKey) || '[]');
+                    const userOrderIndex = userOrders.findIndex(o => o.id === orderId);
+                    if (userOrderIndex > -1) {
+                        userOrders[userOrderIndex].status = newStatus;
+                        localStorage.setItem(userOrdersKey, JSON.stringify(userOrders));
+                    }
+                }
+                
                 showNotification('Order status updated!');
                 loadAdminData();
                 if (document.getElementById('ordersSection').style.display !== 'none') {
