@@ -298,20 +298,23 @@
 
         checkLoginStatus();
         
-        // If not logged in as admin, show login
-        if (!localStorage.getItem('user')) {
-            document.body.innerHTML = '<div style="display:flex;justify-content:center;align-items:center;height:100vh;flex-direction:column;gap:20px;background:linear-gradient(135deg,#1e40af,#1e3a8a);color:#fff;"><h1>Admin Login Required</h1><p>Please login as admin to access this page.</p><a href="index.html" style="padding:15px 30px;background:#fff;color:#1e40af;border-radius:8px;text-decoration:none;font-weight:600;">Go to Login</a></div>';
-        } else {
-            const currentUser = JSON.parse(localStorage.getItem('user'));
-            const users = JSON.parse(localStorage.getItem('users') || '[]');
-            const userData = users.find(u => u.email === currentUser.email);
-            
-            if (!userData || !userData.isAdmin) {
-                document.body.innerHTML = '<div style="display:flex;justify-content:center;align-items:center;height:100vh;flex-direction:column;gap:20px;background:linear-gradient(135deg,#1e40af,#1e3a8a);color:#fff;"><h1>Access Denied</h1><p>You do not have admin access.</p><a href="index.html" style="padding:15px 30px;background:#fff;color:#1e40af;border-radius:8px;text-decoration:none;font-weight:600;">Go to Home</a></div>';
+        // Wait a moment for checkLoginStatus to complete
+        setTimeout(function() {
+            // If not logged in as admin, show login
+            if (!localStorage.getItem('user')) {
+                document.body.innerHTML = '<div style="display:flex;justify-content:center;align-items:center;height:100vh;flex-direction:column;gap:20px;background:linear-gradient(135deg,#1e40af,#1e3a8a);color:#fff;"><h1>Admin Login Required</h1><p>Please login as admin to access this page.</p><a href="index.html" style="padding:15px 30px;background:#fff;color:#1e40af;border-radius:8px;text-decoration:none;font-weight:600;">Go to Login</a></div>';
             } else {
-                loadAdminData();
+                const currentUser = JSON.parse(localStorage.getItem('user'));
+                const users = JSON.parse(localStorage.getItem('users') || '[]');
+                const userData = users.find(u => u.email === currentUser.email);
+                
+                if (!userData || !userData.isAdmin) {
+                    document.body.innerHTML = '<div style="display:flex;justify-content:center;align-items:center;height:100vh;flex-direction:column;gap:20px;background:linear-gradient(135deg,#1e40af,#1e3a8a);color:#fff;"><h1>Access Denied</h1><p>You do not have admin access.</p><a href="index.html" style="padding:15px 30px;background:#fff;color:#1e40af;border-radius:8px;text-decoration:none;font-weight:600;">Go to Home</a></div>';
+                } else {
+                    loadAdminData();
+                }
             }
-        }
+        }, 100);
 
         function showAdminSection(section) {
             document.querySelectorAll('.admin-sidebar-item').forEach(item => {
@@ -331,9 +334,36 @@
         }
 
         function loadAdminData() {
-            const orders = JSON.parse(localStorage.getItem('orders') || '[]');
+            // Load all orders from all users
+            let allOrders = [];
             const users = JSON.parse(localStorage.getItem('users') || '[]');
-
+            
+            users.forEach(user => {
+                const userOrdersKey = 'orders_' + user.email;
+                const userOrders = JSON.parse(localStorage.getItem(userOrdersKey) || '[]');
+                allOrders = allOrders.concat(userOrders.map(o => ({
+                    ...o,
+                    customerEmail: user.email,
+                    customerName: user.name
+                })));
+            });
+            
+            // Also check global orders
+            const globalOrders = JSON.parse(localStorage.getItem('orders') || '[]');
+            allOrders = allOrders.concat(globalOrders);
+            
+            // Remove duplicates
+            const uniqueOrders = [];
+            const seenIds = new Set();
+            allOrders.forEach(order => {
+                if (!seenIds.has(order.id)) {
+                    seenIds.add(order.id);
+                    uniqueOrders.push(order);
+                }
+            });
+            
+            const orders = uniqueOrders.sort((a, b) => new Date(b.date) - new Date(a.date));
+            
             const totalRevenue = orders.reduce((sum, o) => sum + o.total, 0);
             document.getElementById('totalRevenue').textContent = 'ETB ' + totalRevenue.toLocaleString();
             document.getElementById('totalOrders').textContent = orders.length;
@@ -342,25 +372,24 @@
             const conversionRate = users.length > 0 ? Math.round((orders.length / users.length) * 100) : 0;
             document.getElementById('conversionRate').textContent = conversionRate + '%';
 
-            loadRecentOrders();
+            loadRecentOrders(orders);
+            loadOrdersTable(orders);
+            loadCustomersTable(users);
         }
 
-        function loadRecentOrders() {
-            const orders = JSON.parse(localStorage.getItem('orders') || '[]');
+        function loadRecentOrders(allOrders) {
             const tbody = document.getElementById('recentOrdersBody');
-
-            const recentOrders = orders.slice(-5).reverse();
+            const recentOrders = allOrders.slice(0, 5);
             tbody.innerHTML = recentOrders.map(order => `
                 <tr>
                     <td>#${order.id}</td>
-                    <td>${order.name}</td>
-                    <td>${order.items.length} items</td>
+                    <td>${order.customerName || 'N/A'}<br><small>${order.customerEmail || ''}</small></td>
+                    <td>${order.items?.length || 0} items</td>
                     <td>ETB ${order.total.toLocaleString()}</td>
-                    <td><span class="status-badge ${order.status}">${order.status}</span></td>
+                    <td><span class="status-badge ${order.status}" style="padding:4px 8px;border-radius:4px;background:${order.status==='delivered'?'#10b981':order.status==='cancelled'?'#ef4444':order.status==='shipped'?'#3b82f6':'#f59e0b'};color:#fff;">${order.status}</span></td>
                     <td>${new Date(order.date).toLocaleDateString()}</td>
                     <td>
-                        <button onclick="viewOrder(${order.id})" style="background: var(--primary); color: #fff; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; margin-right: 4px;">View</button>
-                        <select onchange="updateOrderStatus(${order.id}, this.value)" style="padding: 6px; border-radius: 6px; border: 1px solid var(--border);">
+                        <select onchange="updateOrderStatus('${order.id}', this.value, '${order.customerEmail}')" style="padding:6px;border-radius:6px;border:1px solid var(--border);cursor:pointer;">
                             <option value="pending" ${order.status === 'pending' ? 'selected' : ''}>Pending</option>
                             <option value="processing" ${order.status === 'processing' ? 'selected' : ''}>Processing</option>
                             <option value="shipped" ${order.status === 'shipped' ? 'selected' : ''}>Shipped</option>
@@ -372,23 +401,22 @@
             `).join('') || '<tr><td colspan="7" style="text-align: center;">No orders yet</td></tr>';
         }
 
-        function loadOrdersTable() {
-            const orders = JSON.parse(localStorage.getItem('orders') || '[]');
+        function loadOrdersTable(allOrders) {
             const tbody = document.getElementById('ordersBody');
 
             const statusOptions = ['pending', 'processing', 'shipped', 'delivered', 'cancelled'];
 
-            tbody.innerHTML = orders.reverse().map(order => `
+            tbody.innerHTML = allOrders.map(order => `
                 <tr>
                     <td>#${order.id}</td>
-                    <td>${order.delivery?.name || 'N/A'}<br><small>${order.delivery?.phone || ''}</small></td>
-                    <td>${order.items.map(i => i.name + ' x' + i.qty).join(', ')}</td>
+                    <td>${order.customerName || 'N/A'}<br><small>${order.customerEmail || ''}</small></td>
+                    <td>${order.items?.map(i => i.name + ' x' + i.qty).join(', ') || 'N/A'}</td>
                     <td>ETB ${order.total.toLocaleString()}</td>
                     <td>${order.paymentMethod?.toUpperCase() || 'N/A'}</td>
                     <td>
-                        <select onchange="updateOrderStatus('${order.id}', this.value)" 
+                        <select onchange="updateOrderStatus('${order.id}', this.value, '${order.customerEmail}')" 
                                 style="padding: 6px 10px; border-radius: 6px; border: 2px solid var(--border); 
-                                       background: ${order.status === 'delivered' ? 'var(--success)' : order.status === 'cancelled' ? 'var(--error)' : 'var(--background)'};
+                                       background: ${order.status === 'delivered' ? '#10b981' : order.status === 'cancelled' ? '#ef4444' : order.status === 'shipped' ? '#3b82f6' : '#f59e0b'};
                                        color: #fff; cursor: pointer;">
                             ${statusOptions.map(s => `<option value="${s}" ${order.status === s ? 'selected' : ''}>${s.charAt(0).toUpperCase() + s.slice(1)}</option>`).join('')}
                         </select>
@@ -482,32 +510,28 @@
             document.body.style.overflow = '';
         }
 
-        function updateOrderStatus(orderId, newStatus) {
-            const orders = JSON.parse(localStorage.getItem('orders') || '[]');
-            const orderIndex = orders.findIndex(o => o.id === orderId);
-
-            if (orderIndex > -1) {
-                orders[orderIndex].status = newStatus;
-                localStorage.setItem('orders', JSON.stringify(orders));
-                
-                // Also update in user-specific order storage
-                const userEmail = orders[orderIndex].userEmail;
-                if (userEmail) {
-                    const userOrdersKey = 'orders_' + userEmail;
-                    const userOrders = JSON.parse(localStorage.getItem(userOrdersKey) || '[]');
-                    const userOrderIndex = userOrders.findIndex(o => o.id === orderId);
-                    if (userOrderIndex > -1) {
-                        userOrders[userOrderIndex].status = newStatus;
-                        localStorage.setItem(userOrdersKey, JSON.stringify(userOrders));
-                    }
-                }
-                
-                showNotification('Order status updated!');
-                loadAdminData();
-                if (document.getElementById('ordersSection').style.display !== 'none') {
-                    loadOrdersTable();
+        function updateOrderStatus(orderId, newStatus, customerEmail) {
+            // Update in user-specific storage
+            if (customerEmail) {
+                const userOrdersKey = 'orders_' + customerEmail;
+                const userOrders = JSON.parse(localStorage.getItem(userOrdersKey) || '[]');
+                const userOrderIndex = userOrders.findIndex(o => o.id === orderId);
+                if (userOrderIndex > -1) {
+                    userOrders[userOrderIndex].status = newStatus;
+                    localStorage.setItem(userOrdersKey, JSON.stringify(userOrders));
                 }
             }
+            
+            // Also update global orders
+            const globalOrders = JSON.parse(localStorage.getItem('orders') || '[]');
+            const globalOrderIndex = globalOrders.findIndex(o => o.id === orderId);
+            if (globalOrderIndex > -1) {
+                globalOrders[globalOrderIndex].status = newStatus;
+                localStorage.setItem('orders', JSON.stringify(globalOrders));
+            }
+            
+            showNotification('Order status updated to ' + newStatus + '!');
+            loadAdminData();
         }
 
         function openAddProductModal() {

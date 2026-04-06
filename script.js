@@ -1490,14 +1490,30 @@ function renderOrderHistory() {
         return;
     }
     
+    const statusColors = {
+        pending: '#f59e0b',
+        processing: '#3b82f6',
+        shipped: '#8b5cf6',
+        delivered: '#10b981',
+        cancelled: '#ef4444'
+    };
+    
     const statusLabels = {
         pending: 'Pending',
         processing: 'Processing',
         shipped: 'Shipped',
-        delivered: 'Delivered'
+        delivered: 'Delivered',
+        cancelled: 'Cancelled'
     };
     
-    orderHistory.innerHTML = orders.slice(0, 10).map(order => {
+    const statusSteps = {
+        pending: 0,
+        processing: 1,
+        shipped: 2,
+        delivered: 3
+    };
+    
+    orderHistory.innerHTML = orders.slice(0, 20).map(order => {
         const date = new Date(order.date).toLocaleDateString('en-US', {
             year: 'numeric', month: 'short', day: 'numeric'
         });
@@ -1506,15 +1522,32 @@ function renderOrderHistory() {
             item.name + ' (x' + item.qty + ')'
         ).join(', ');
         
-        return '<div class="order-item">' +
-            '<div class="order-header">' +
-            '<span class="order-id">' + order.id + '</span>' +
-            '<span class="order-status ' + order.status + '">' + statusLabels[order.status] + '</span>' +
-            '<button class="order-delete-btn" onclick="deleteOrder(\'' + order.id + '\')" title="Delete Order">🗑️</button>' +
+        const currentStep = statusSteps[order.status] !== undefined ? statusSteps[order.status] : 0;
+        const bgColor = statusColors[order.status] || '#f59e0b';
+        
+        return '<div class="order-item" style="margin-bottom: 20px; padding: 20px; background: var(--background); border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">' +
+            '<div class="order-header" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">' +
+            '<div><span class="order-id" style="font-weight:700; color:var(--primary); font-size:16px;">' + order.id + '</span></div>' +
+            '<div style="display:flex; align-items:center; gap:10px;">' +
+            '<span style="padding:6px 14px; border-radius:20px; background:' + bgColor + '; color:#fff; font-weight:600; font-size:13px;">' + (statusLabels[order.status] || order.status) + '</span>' +
+            '<button class="order-delete-btn" onclick="deleteOrder(\'' + order.id + '\')" title="Delete Order" style="background:none; border:none; cursor:pointer; font-size:18px; padding:4px;">🗑️</button>' +
+            '</div></div>' +
+            
+            '<div style="margin-bottom:15px;">' +
+            '<div style="display:flex; justify-content:space-between; margin-bottom:8px;">' +
+            '<div style="text-align:center; flex:1;"><div style="width:30px; height:30px; border-radius:50%; background:' + (currentStep >= 0 ? bgColor : '#ddd') + '; color:#fff; display:flex; align-items:center; justify-content:center; margin:0 auto 5px;">✓</div><span style="font-size:11px; color:var(--text-light);">Order Placed</span></div>' +
+            '<div style="text-align:center; flex:1;"><div style="width:30px; height:30px; border-radius:50%; background:' + (currentStep >= 1 ? bgColor : '#ddd') + '; color:#fff; display:flex; align-items:center; justify-content:center; margin:0 auto 5px;">✓</div><span style="font-size:11px; color:var(--text-light);">Processing</span></div>' +
+            '<div style="text-align:center; flex:1;"><div style="width:30px; height:30px; border-radius:50%; background:' + (currentStep >= 2 ? bgColor : '#ddd') + '; color:#fff; display:flex; align-items:center; justify-content:center; margin:0 auto 5px;">✓</div><span style="font-size:11px; color:var(--text-light);">Shipped</span></div>' +
+            '<div style="text-align:center; flex:1;"><div style="width:30px; height:30px; border-radius:50%; background:' + (currentStep >= 3 ? bgColor : '#ddd') + '; color:#fff; display:flex; align-items:center; justify-content:center; margin:0 auto 5px;">✓</div><span style="font-size:11px; color:var(--text-light);">Delivered</span></div>' +
             '</div>' +
-            '<div class="order-date">' + date + ' | ' + order.paymentMethod.toUpperCase() + '</div>' +
-            '<div class="order-items">' + items + '</div>' +
-            '<div class="order-total">Total: ETB ' + order.total.toLocaleString() + '</div>' +
+            '<div style="height:4px; background:#eee; border-radius:2px; position:relative;">' +
+            '<div style="position:absolute; left:0; top:0; height:100%; width:' + (currentStep * 33.33) + '%; background:' + bgColor + '; border-radius:2px; transition:width 0.3s;"></div>' +
+            '</div>' +
+            '</div>' +
+            
+            '<div class="order-date" style="color:var(--text-light); font-size:13px; margin-bottom:10px;">📅 ' + date + ' | 💳 ' + (order.paymentMethod || 'N/A').toUpperCase() + '</div>' +
+            '<div class="order-items" style="font-size:14px; margin-bottom:12px; color:var(--text);">' + items + '</div>' +
+            '<div class="order-total" style="font-size:18px; font-weight:700; color:var(--primary);">Total: ETB ' + order.total.toLocaleString() + '</div>' +
             '</div>';
     }).join('');
 }
