@@ -939,18 +939,25 @@ function filterProducts() {
     const searchInput = document.getElementById('searchInput');
     const searchTerm = searchInput ? searchInput.value.toLowerCase().trim() : '';
     
+    const selectedSizes = Array.from(document.querySelectorAll('input[name="size"]:checked')).map(cb => cb.value);
+    const selectedColors = Array.from(document.querySelectorAll('input[name="color"]:checked')).map(cb => cb.value);
+    
     let visibleCount = 0;
     products.forEach(product => {
         const price = parseInt(product.dataset.price);
         const category = product.dataset.category;
         const name = product.querySelector('.product-title')?.textContent.toLowerCase() || '';
         const desc = product.querySelector('.product-category')?.textContent.toLowerCase() || '';
+        const productSizes = product.dataset.size?.split(',') || [];
+        const productColors = product.dataset.color?.split(',') || [];
         
         const categoryMatch = !selectedCategory || category === selectedCategory;
         const priceMatch = price >= priceMin && price <= priceMax;
         const searchMatch = !searchTerm || name.includes(searchTerm) || desc.includes(searchTerm);
+        const sizeMatch = selectedSizes.length === 0 || selectedSizes.some(s => productSizes.includes(s));
+        const colorMatch = selectedColors.length === 0 || selectedColors.some(c => productColors.includes(c));
         
-        if (categoryMatch && priceMatch && searchMatch) {
+        if (categoryMatch && priceMatch && searchMatch && sizeMatch && colorMatch) {
             product.style.display = '';
             visibleCount++;
         } else {
@@ -959,6 +966,16 @@ function filterProducts() {
     });
     
     if (productCount) productCount.textContent = 'Showing ' + visibleCount + ' products';
+}
+
+function clearFilters() {
+    document.querySelectorAll('.filter-list input[type="radio"]').forEach(radio => {
+        if (radio.value === '') radio.checked = true;
+    });
+    document.getElementById('priceMin').value = 0;
+    document.getElementById('priceMax').value = 25000;
+    document.querySelectorAll('input[name="size"]:checked, input[name="color"]:checked').forEach(cb => cb.checked = false);
+    filterProducts();
 }
 
 function sortProducts(value) {
@@ -1588,6 +1605,11 @@ function updateProfile(event) {
 
 document.addEventListener('DOMContentLoaded', function() {
     filterProducts();
+    
+    document.querySelectorAll('.product-stock').forEach(el => {
+        const stock = parseInt(el.dataset.stock);
+        if (stock <= 5) el.classList.add('low-stock');
+    });
     
     const priceInputs = document.querySelectorAll('#priceMin, #priceMax');
     priceInputs.forEach(input => {

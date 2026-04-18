@@ -147,6 +147,32 @@
                         </div>
                         <button class="price-btn" onclick="filterProducts()">Apply</button>
                     </div>
+
+                    <div class="filter-box">
+                        <h3>Size</h3>
+                        <div class="size-options">
+                            <label class="size-option"><input type="checkbox" name="size" value="small" onchange="filterProducts()"> <span>Small</span></label>
+                            <label class="size-option"><input type="checkbox" name="size" value="medium" onchange="filterProducts()"> <span>Medium</span></label>
+                            <label class="size-option"><input type="checkbox" name="size" value="large" onchange="filterProducts()"> <span>Large</span></label>
+                            <label class="size-option"><input type="checkbox" name="size" value="xlarge" onchange="filterProducts()"> <span>XL</span></label>
+                        </div>
+                    </div>
+
+                    <div class="filter-box">
+                        <h3>Color</h3>
+                        <div class="color-options">
+                            <label class="color-option" style="--color: #000;" title="Black"><input type="checkbox" name="color" value="black" onchange="filterProducts()"></label>
+                            <label class="color-option" style="--color: #fff; border: 1px solid #ddd;" title="White"><input type="checkbox" name="color" value="white" onchange="filterProducts()"></label>
+                            <label class="color-option" style="--color: #1a365d;" title="Navy"><input type="checkbox" name="color" value="navy" onchange="filterProducts()"></label>
+                            <label class="color-option" style="--color: #b91c1c;" title="Red"><input type="checkbox" name="color" value="red" onchange="filterProducts()"></label>
+                            <label class="color-option" style="--color: #d4af37;" title="Gold"><input type="checkbox" name="color" value="gold" onchange="filterProducts()"></label>
+                            <label class="color-option" style="--color: #6b21a8;" title="Purple"><input type="checkbox" name="color" value="purple" onchange="filterProducts()"></label>
+                            <label class="color-option" style="--color: #047857;" title="Green"><input type="checkbox" name="color" value="green" onchange="filterProducts()"></label>
+                            <label class="color-option" style="--color: #f59e0b;" title="Orange"><input type="checkbox" name="color" value="orange" onchange="filterProducts()"></label>
+                        </div>
+                    </div>
+
+                    <button class="price-btn" onclick="clearFilters()" style="margin-top: 1rem; width: 100%;">Clear All Filters</button>
                 </aside>
                 
                 <div class="shop-main">
@@ -160,7 +186,7 @@
                     </div>
                     
                     <div class="products-grid" id="productGrid">
-                        <div class="product-card" data-category="habesha" data-price="8500">
+                        <div class="product-card" data-category="habesha" data-price="8500" data-size="large,xlarge" data-color="navy,gold" data-stock="15">
                             <div class="product-image">
                                 <span class="product-badge badge-best">Bestseller</span>
                                 <img src="images/Handwoven Habesha Kemis.jpg" alt="Habesha Kemis">
@@ -172,6 +198,7 @@
                             <div class="product-info">
                                 <span class="product-category">Habesha Kemis</span>
                                 <h3 class="product-title">Handwoven Habesha Kemis</h3>
+                                <div class="product-stock" data-stock="15">15 in stock</div>
                                 <div class="product-rating">
                                     <span class="stars">★★★★★</span>
                                     <span class="rating-count">(2,847)</span>
@@ -183,7 +210,7 @@
                             </div>
                         </div>
                         
-                        <div class="product-card" data-category="habesha" data-price="12000">
+                        <div class="product-card" data-category="habesha" data-price="12000" data-size="small,medium,large,xlarge" data-color="gold,red" data-stock="8">
                             <div class="product-image">
                                 <span class="product-badge badge-new">New</span>
                                 <img src="images/Festival Habesha Kemis - Golden Thread Embroidery.jpg" alt="Festival Kemis">
@@ -195,6 +222,7 @@
                             <div class="product-info">
                                 <span class="product-category">Habesha Kemis</span>
                                 <h3 class="product-title">Festival Habesha Kemis</h3>
+                                <div class="product-stock" data-stock="8">8 in stock</div>
                                 <div class="product-rating">
                                     <span class="stars">★★★★★</span>
                                     <span class="rating-count">(986)</span>
@@ -206,7 +234,7 @@
                             </div>
                         </div>
                         
-                        <div class="product-card" data-category="habesha" data-price="9500">
+                        <div class="product-card" data-category="habesha" data-price="9500" data-size="small,medium,large" data-color="white,navy">
                             <div class="product-image">
                                 <img src="/images/Everyday Habesha Kemis.jpg" alt="Everyday Kemis">
                                 <div class="product-actions">
@@ -228,7 +256,7 @@
                             </div>
                         </div>
                         
-                        <div class="product-card" data-category="mens" data-price="7500">
+                        <div class="product-card" data-category="mens" data-price="7500" data-size="small,medium,large,xlarge" data-color="white,black" data-stock="25">
                             <div class="product-image">
                                 <span class="product-badge badge-hot">Popular</span>
                                 <img src="/images/Men Tishert.jpg" alt="Men's Kemis">
@@ -240,6 +268,7 @@
                             <div class="product-info">
                                 <span class="product-category">Men's Traditional</span>
                                 <h3 class="product-title">Men's T-shirt</h3>
+                                <div class="product-stock" data-stock="25">25 in stock</div>
                                 <div class="product-rating">
                                     <span class="stars">★★★★☆</span>
                                     <span class="rating-count">(1,234)</span>
@@ -339,7 +368,7 @@
                             </div>
                         </div>
                         
-                        <div class="product-card" data-category="shoes" data-price="3500">
+                        <div class="product-card" data-category="shoes" data-price="3500" data-size="large,xlarge" data-color="black,brown" data-stock="12">
                             <div class="product-image">
                                 <img src="/images/Arif Tibeb Ethiopian Traditional Men's Sandal And Loafer.jpg" alt="Kuru Shoes">
                                 <div class="product-actions">
@@ -350,6 +379,7 @@
                             <div class="product-info">
                                 <span class="product-category">Traditional Shoes</span>
                                 <h3 class="product-title">Traditional Men's Sandal And Loafer</h3>
+                                <div class="product-stock" data-stock="12">12 in stock</div>
                                 <div class="product-rating">
                                     <span class="stars">★★★★☆</span>
                                     <span class="rating-count">(892)</span>
@@ -361,7 +391,7 @@
                             </div>
                         </div>
                         
-                        <div class="product-card" data-category="shoes" data-price="5500">
+                        <div class="product-card" data-category="shoes" data-price="5500" data-size="large,xlarge" data-color="black,brown" data-stock="20">
                             <div class="product-image">
                                 <span class="product-badge badge-best">Bestseller</span>
                                 <img src="/images/Arif Tibeb Ethiopian Traditional Men's Sandal And Loafer2.jpg" alt="Leather Sandals">
@@ -373,6 +403,7 @@
                             <div class="product-info">
                                 <span class="product-category">Traditional Shoes</span>
                                 <h3 class="product-title">Traditional Men's Sandal And Loafer2</h3>
+                                <div class="product-stock" data-stock="20">20 in stock</div>
                                 <div class="product-rating">
                                     <span class="stars">★★★★★</span>
                                     <span class="rating-count">(1,523)</span>
@@ -429,7 +460,7 @@
                             </div>
                         </div>
                         
-                        <div class="product-card" data-category="accessories" data-price="1500">
+                        <div class="product-card" data-category="accessories" data-price="1500" data-stock="50">
                             <div class="product-image">
                                 <span class="product-badge badge-hot">Hot</span>
                                 <img src="/images/Nigest Ethiopian Kaba.jpg" alt="Scarf">
@@ -441,6 +472,7 @@
                             <div class="product-info">
                                 <span class="product-category">Accessories</span>
                                 <h3 class="product-title">Nigest Ethiopian Kaba</h3>
+                                <div class="product-stock" data-stock="50">50 in stock</div>
                                 <div class="product-rating">
                                     <span class="stars">★★★★★</span>
                                     <span class="rating-count">(3,156)</span>
